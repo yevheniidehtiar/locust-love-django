@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "locust-live-django"
+version = "0.1.0"
+description = "Suite of Django ORM anti-patterns and automated test to detect them"
+authors = ["Yevhenii Dehtiar <yevhenii.dehtiar@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+locust = "^2.31.4"
+Django = "^5"
+django-debug-toolbar = "^4.4.6"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-django = "^4.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

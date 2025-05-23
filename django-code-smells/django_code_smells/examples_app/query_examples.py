@@ -94,3 +94,86 @@ def get_books_by_authors_with_many_titles_expensive_query(min_books=5):
 
 #   print("\nDemonstrating potentially expensive query (conceptual):")
 #   # print(get_books_by_authors_with_many_titles_expensive_query(min_books=1))
+
+# Import the new utility functions
+from .utils import get_book_publisher_name, get_book_tags_as_string
+
+# New functions to demonstrate N+1 across files/classes:
+
+def get_all_book_publisher_names_service_level_n_plus_one():
+    """
+    Demonstrates an N+1 query where the related data fetching
+    is hidden inside another function/service call (get_book_publisher_name).
+    """
+    books = Book.objects.all() # 1 query to get all books
+    publisher_names = []
+    for book in books:
+        # Each call to get_book_publisher_name might do its own Book.objects.get()
+        # and then access book.publisher.name, causing N additional queries
+        # if publishers aren't prefetched or passed into the util.
+        # Our current get_book_publisher_name does Book.objects.get(id=book.id) which is redundant here.
+        # A more realistic util might just take a book object: util(book_obj) -> book_obj.publisher.name
+        # Forcing the N+1 with current util:
+        publisher_names.append(get_book_publisher_name(book.id))
+    return publisher_names
+
+def get_all_book_tags_service_level_n_plus_one():
+    """
+    Demonstrates an N+1 query with M2M relationships hidden
+    inside another function call (get_book_tags_as_string).
+    """
+    books = Book.objects.all() # 1 query
+    all_tags_strings = []
+    for book in books:
+        # Each call to get_book_tags_as_string will trigger
+        # Book.objects.get(id=book.id) and then book.tags.all()
+        # causing N additional queries for tags (or N*M if .all() is inefficiently used inside loop).
+        all_tags_strings.append(get_book_tags_as_string(book.id))
+    return all_tags_strings
+
+def get_all_book_publisher_names_optimized(books_queryset=None):
+    """
+    Shows an optimized way by prefetching related data.
+    The utility function itself isn't changed, but the way data is fetched and passed would ideally change.
+    Here, we prefetch publishers for the main query.
+    Note: The current `get_book_publisher_name` still does `Book.objects.get()`.
+    A better util would accept a `book` object.
+    This example assumes we'd refactor `get_book_publisher_name` to just use `book.publisher.name`.
+    """
+    if books_queryset is None:
+        books_queryset = Book.objects.all()
+
+    # Prefetch related publishers and tags
+    books_with_publishers = books_queryset.select_related('publisher')
+    # For M2M, you'd use prefetch_related for tags
+    # books_with_publishers_and_tags = books_queryset.select_related('publisher').prefetch_related('tags')
+
+    publisher_names = []
+    for book in books_with_publishers:
+        # Assuming get_book_publisher_name was refactored to:
+        # def get_book_publisher_name(book_object):
+        #     if book_object.publisher: return book_object.publisher.name
+        #     return "Publisher not available"
+        if book.publisher:
+            publisher_names.append(book.publisher.name) # Access prefetched data
+        else:
+            publisher_names.append("Publisher not available")
+    return publisher_names
+
+def get_all_book_tags_optimized(books_queryset=None):
+    """
+    Shows an optimized way by prefetching M2M related data.
+    Similar to above, this assumes `get_book_tags_as_string` would be
+    refactored to accept a book object and use its prefetched .tags.all().
+    """
+    if books_queryset is None:
+        books_queryset = Book.objects.all()
+
+    books_with_tags = books_queryset.prefetch_related('tags')
+    all_tags_strings = []
+    for book in books_with_tags:
+        # Assuming get_book_tags_as_string was refactored to:
+        # def get_book_tags_as_string(book_object):
+        #     return ", ".join([tag.name for tag in book_object.tags.all()]) # Uses prefetched tags
+        all_tags_strings.append(", ".join([tag.name for tag in book.tags.all()]))
+    return all_tags_strings

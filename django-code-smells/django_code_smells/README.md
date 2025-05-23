@@ -45,3 +45,46 @@ The Python functions in `query_examples.py` are designed to illustrate ORM patte
 5.  Call these functions from a Django management command, a view, or within the Django shell (`python manage.py shell`).
 
 These examples are primarily for illustrative purposes within the context of this repository, which focuses on SQL profiling middleware.
+
+---
+
+## Advanced Performance Scenarios & Django Admin
+
+The examples have been expanded to cover more complex N+1 scenarios and common performance pitfalls within the Django Admin interface.
+
+### Enhanced Models for Detailed Examples
+
+The models in `examples_app/models.py` have been enhanced:
+-   **`Publisher` model**: A new model linked to `Book` via a `ForeignKey`.
+-   **`Tag` model**: A new model linked to `Book` via a `ManyToManyField`.
+-   **`Author` model**: Extended with `email` and `bio` fields.
+-   **`Book` model**: Extended with a `publisher` ForeignKey, `tags` ManyToManyField, `isbn`, and `pages`. It also includes methods like `get_author_bio_preview()` and `get_tag_names()` which are used in admin examples.
+
+These richer models allow for more realistic demonstrations of complex queries and admin performance issues.
+
+### N+1 Queries Across Different Files/Classes
+
+A common challenge is identifying N+1 queries when the problematic database access is hidden in utility functions or methods in different classes/files.
+
+-   **`examples_app/utils.py`**: Contains functions like `get_book_publisher_name(book_id)` and `get_book_tags_as_string(book_id)`. These functions fetch details for a single book, including related objects (publisher, tags).
+-   **`examples_app/query_examples.py`**: Functions like `get_all_book_publisher_names_service_level_n_plus_one()` and `get_all_book_tags_service_level_n_plus_one()` demonstrate this issue. They loop through a queryset of books and call these utility functions for each book. If the utility functions internally re-fetch the book or its related objects without prior prefetching, N+1 queries occur.
+-   The `query_examples.py` file also includes conceptual "optimized" versions (e.g., `get_all_book_publisher_names_optimized`) that illustrate how prefetching (`select_related`, `prefetch_related`) in the calling code is crucial. For these optimizations to be effective, the utility functions would typically need to be refactored to work with model instances and their already-fetched related data, rather than re-querying by ID.
+
+### Django Admin Performance Examples
+
+The `examples_app/admin.py` file now includes demonstrations of common performance issues encountered in the Django Admin:
+
+1.  **Slow Counts in Admin List View**:
+    -   Methods like `total_published_books` in `PublisherAdmin` and `number_of_books_with_tag` in `TagAdmin` are added to `list_display`.
+    -   These methods typically perform a `.count()` on a related manager (e.g., `publisher.books.count()`).
+    -   When the admin list page for Publishers or Tags is rendered, these methods are called for *each item* in the list, resulting in numerous separate count queries (an N+1 problem for counts). This can be very slow for lists with many items or if the count queries themselves are complex.
+    -   The `admin.py` file includes comments on how this can be optimized by annotating the count in the `ModelAdmin`'s `get_queryset` method.
+
+2.  **Slow Property Rendering from Related Objects**:
+    -   The `BookAdmin`'s `list_display` now includes `display_author_bio_preview` and `display_tag_names`. These call methods on the `Book` model (`get_author_bio_preview()` and `get_tag_names()`).
+    -   `get_author_bio_preview()` accesses `book.author.bio`. If `author` is not fetched using `select_related` in the admin's queryset, each book row will trigger an extra query for its author's details.
+    -   `get_tag_names()` accesses `book.tags.all()`. If `tags` are not fetched using `prefetch_related`, each book row will trigger extra queries for its tags.
+    -   This demonstrates how seemingly simple display methods can hide N+1 queries, significantly slowing down admin page loads.
+    -   The `admin.py` includes comments on optimizing this with `select_related` and `prefetch_related` in `get_queryset`.
+
+These examples aim to provide a clearer understanding of how to identify and address these subtle but impactful performance bottlenecks.

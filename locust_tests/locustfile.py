@@ -1,18 +1,25 @@
-import locust
 import logging
+import locust
 from locust import HttpUser, TaskSet, task, between
 from locust.runners import MasterRunner
 
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Add a debug log message at startup
+logger.debug("Locust script starting up - DEBUG level")
+logger.info("Locust script starting up - INFO level")
 
 
 class UserBehavior(TaskSet):
     @task(1)
     def get_authors(self):
+        logger.debug("Executing get_authors task")
         with self.client.get("/api/authors/", catch_response=True) as response:
             if response.status_code == 200:
+                logger.debug(f"get_authors response status: {response.status_code}")
                 self.parse_headers(response)
 
     @task(2)
@@ -122,6 +129,7 @@ class WebsiteUser(HttpUser):
 
 
 def custom_stats_printer(environment, **kwargs):
+    logger.debug("Custom stats printer called")
     for stat in environment.runner.stats.entries.values():
         if stat.name and stat.response_times:
             logger.info(
@@ -132,9 +140,9 @@ def custom_stats_printer(environment, **kwargs):
 
 
 # This will print custom stats in the log every 10 seconds
-if isinstance(locust.runners.get_runner(), MasterRunner):
-    locust.events.init.add_listener(
-        lambda environment, **kwargs: environment.events.stats_printer.add_listener(
-            custom_stats_printer
-        )
-    )
+@locust.events.init.add_listener
+def on_locust_init(environment, **kwargs):
+    logger.debug("Locust initialization event triggered")
+    if isinstance(environment.runner, MasterRunner):
+        logger.debug("Master runner detected, adding stats_printer listener")
+        environment.events.stats_printer.add_listener(custom_stats_printer)

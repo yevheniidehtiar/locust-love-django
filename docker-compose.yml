@@ -11,11 +11,17 @@ services:
       - ./http_header_profiling_middleware:/app/http_header_profiling_middleware
     environment:
       - DEBUG=True
+      - PYTHONUNBUFFERED=1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   locust:
     build:
@@ -28,4 +34,15 @@ services:
         condition: service_healthy
     environment:
       - TARGET_HOST=http://django:8000
-    command: locust --host=http://django:8000 --web-host=0.0.0.0
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8089/" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    command: locust --host=http://django:8000 --web-host=0.0.0.0 --loglevel=DEBUG --logfile=-
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

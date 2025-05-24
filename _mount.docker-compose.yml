@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  django:
+    volumes:
+      - ./django-code-smells/django_code_smells:/app/
+      - ./http_header_profiling_middleware:/app/http_header_profiling_middleware
+
+  locust:
+    volumes:
+      - ./locust_tests/:/app/

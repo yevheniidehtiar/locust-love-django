@@ -5,6 +5,10 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Copy entrypoint script
+COPY django-code-smells/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Install dependencies
 RUN pip install --upgrade pip
 COPY django-code-smells/django_code_smells/requirements.txt /app/
@@ -32,4 +36,5 @@ RUN echo "from examples_app.models import Author, Book; \
 
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["start"]

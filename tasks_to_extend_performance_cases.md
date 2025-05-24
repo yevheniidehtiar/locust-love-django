@@ -14,31 +14,31 @@ The project currently demonstrates the following performance issues:
 ### 1. Database Query Optimization
 
 #### High Priority
-1. **Implement Prefetch Related Example** [INPROGRESS]
+1. **Implement Prefetch Related Example**
    - Create an endpoint that demonstrates the use of `prefetch_related` for many-to-many or reverse foreign key relationships
    - Compare with a non-optimized version to show performance difference
    - Complexity: Medium
 
-2. **Implement Bulk Create/Update Example** [DONE]
+2. **Implement Bulk Create/Update Example**
    - Create an endpoint that demonstrates the performance benefits of using `bulk_create` and `bulk_update` instead of individual save operations
    - Complexity: Medium
 
-3. **Implement Query Annotation Example** 
+3. **Implement Query Annotation Example** [DONE]
    - Create an endpoint that demonstrates using annotations to perform calculations in the database rather than in Python
    - Complexity: Medium
 
 #### Medium Priority
-4. **Implement Database Index Example**
+4. **Implement Database Index Example** [DONE]
    - Create an endpoint that demonstrates the performance impact of adding indexes to frequently queried fields
    - Include before/after measurements
    - Complexity: Medium
 
-5. **Implement Raw SQL Example**
+5. **Implement Raw SQL Example** [DONE]
    - Create an endpoint that demonstrates when using raw SQL might be more efficient than the ORM
    - Compare with equivalent ORM query
    - Complexity: Hard
 
-6. **Implement Query Caching Example**
+6. **Implement Query Caching Example** [DONE]
    - Create an endpoint that demonstrates caching query results to avoid repeated database hits
    - Complexity: Medium
 

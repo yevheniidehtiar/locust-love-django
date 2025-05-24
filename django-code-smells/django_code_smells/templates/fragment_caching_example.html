@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Template Fragment Caching Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .author {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .author-name {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .books {
+            margin-left: 20px;
+        }
+        .book {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 3px;
+        }
+        .stats {
+            margin-top: 15px;
+            font-style: italic;
+            color: #666;
+        }
+        .timestamp {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+        .explanation {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-left: 5px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Template Fragment Caching Example</h1>
+    
+    <div class="explanation">
+        <p>This page demonstrates template fragment caching in Django. The page displays a list of authors and their books, with some fragments cached and others not cached.</p>
+        <p>The current time is displayed in each section to show when the fragment was rendered. If a fragment is cached, the time will not change on page refresh.</p>
+    </div>
+    
+    <h2>Without Caching (Renders Every Time)</h2>
+    <div class="timestamp">Page rendered at: {{ current_time }}</div>
+    
+    {% for author in authors %}
+    <div class="author">
+        <div class="author-name">{{ author.name }}</div>
+        <div class="timestamp">This fragment rendered at: {{ current_time }}</div>
+        
+        <h3>Books:</h3>
+        <div class="books">
+            {% for book in author.books.all %}
+            <div class="book">
+                <strong>{{ book.title }}</strong> ({{ book.publication_year }})
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="stats">
+            Total books: {{ author.books.count }}
+        </div>
+    </div>
+    {% endfor %}
+    
+    <h2>With Caching (Renders Once, Then Cached)</h2>
+    <div class="timestamp">Page rendered at: {{ current_time }}</div>
+    
+    {% for author in authors %}
+    <div class="author">
+        {% load cache %}
+        {% cache 500 author_fragment author.id %}
+        <div class="author-name">{{ author.name }}</div>
+        <div class="timestamp">This fragment rendered at: {{ current_time }}</div>
+        
+        <h3>Books:</h3>
+        <div class="books">
+            {% for book in author.books.all %}
+            <div class="book">
+                <strong>{{ book.title }}</strong> ({{ book.publication_year }})
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="stats">
+            Total books: {{ author.books.count }}
+        </div>
+        {% endcache %}
+    </div>
+    {% endfor %}
+    
+    <h2>Partial Caching (Only Cache Expensive Parts)</h2>
+    <div class="timestamp">Page rendered at: {{ current_time }}</div>
+    
+    {% for author in authors %}
+    <div class="author">
+        <div class="author-name">{{ author.name }}</div>
+        <div class="timestamp">This part rendered at: {{ current_time }}</div>
+        
+        {% load cache %}
+        {% cache 500 author_books_fragment author.id %}
+        <h3>Books (Cached Fragment):</h3>
+        <div class="timestamp">This cached fragment rendered at: {{ current_time }}</div>
+        <div class="books">
+            {% for book in author.books.all %}
+            <div class="book">
+                <strong>{{ book.title }}</strong> ({{ book.publication_year }})
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="stats">
+            Total books: {{ author.books.count }}
+        </div>
+        {% endcache %}
+    </div>
+    {% endfor %}
+</body>
+</html>

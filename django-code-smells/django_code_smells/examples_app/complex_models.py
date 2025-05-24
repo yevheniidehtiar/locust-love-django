@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 
 class Department(models.Model):
     """
@@ -122,7 +123,6 @@ class Task(models.Model):
     
     @property
     def is_overdue(self):
-        from datetime import date
         if self.due_date and self.status != 'DONE' and self.due_date < date.today():
             return True
         return False

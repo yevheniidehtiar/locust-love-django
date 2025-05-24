@@ -1,15 +1,20 @@
-[tool.poetry]
+[project]
 name = "django-code-smells"
 version = "0.1.0"
 description = ""
-authors = ["Yevhenii Dehtiar <yevhenii.dehtiar@gmail.com>"]
+authors = [
+    {name = "Yevhenii Dehtiar", email = "yevhenii.dehtiar@gmail.com"}
+]
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.12"
-django = "^5.1"
-
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.0.0",
+    "djangorestframework>=3.14.0",
+    "django-debug-toolbar>=4.4.6",
+    "markdown>=3.5.2",
+    "coreapi>=2.3.3",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

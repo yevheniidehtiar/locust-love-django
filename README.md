@@ -1,120 +1,74 @@
-# Django SQL Profiler Middleware
+# Locust Love Django
 
-`Django SQL Profiler Middleware` is a Django middleware that leverages `django-debug-toolbar` to analyze SQL queries in your Django application. It helps identify N+1 query issues and slow queries by logging stack traces and including related UUIDs in HTTP headers. This project also includes Locust tests for performance testing.
+This project demonstrates how to use Locust to load test a Django application and detect performance issues like N+1 queries and slow queries.
 
-## Features
+## Components
 
-- Identifies and logs N+1 queries and slow SQL queries.
-- Logs stack traces with UUIDs for easy traceability.
-- Adds HTTP headers with query information and UUIDs for reference.
-- Provides a Locust test script to simulate user behavior and monitor performance.
-- Easy integration with any Django project.
+1. **Django Application**
+   - REST API exposing Author and Book models
+   - Example endpoints demonstrating N+1 queries and optimized queries
+   - Custom middleware for detecting and reporting performance issues
 
-
-## Installation
-
-1. **Clone the repository**:
-
-    ```bash
-    git clone https://github.com/yourusername/django-sql-profiler-middleware.git
-    cd django-sql-profiler-middleware
-    ```
-
-2. **Install dependencies**:
-
-    Install the necessary Python packages using pip:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-    Ensure `django-debug-toolbar` and `locust` are included in your `requirements.txt`.
-
-3. **Add Middleware to Django Settings**:
-
-    Add the middleware to your Django `settings.py`:
-
-    ```python
-    MIDDLEWARE = [
-        ...
-        'my_django_app.middleware.DjtbSQLProfileHttpHeaderMiddleware',
-        ...
-    ]
-    ```
-
-## Usage
-
-### Running the Django Application
-
-1. **Run the Django development server**:
-
-    ```bash
-    python manage.py runserver
-    ```
-
-2. **Access the application** in your web browser at `http://localhost:8000`.
-
-### Running Locust for Performance Testing
-
-1. **Run Locust**:
-
-    Navigate to the `locust_tests` folder and run Locust:
-
-    ```bash
-    locust -f locust_tests/locustfile.py
-    ```
-
-2. **Open the Locust web interface**:
-
-    Visit `http://localhost:8089` to start the performance tests and monitor the results.
-
-### Logging and Monitoring
-
-- **Stack Traces**:
-  - Stack traces are logged with UUIDs for N+1 and slow queries.
-  - Logs are stored in the file specified in your Django logging configuration (`settings.py`).
-
-- **HTTP Headers**:
-  - HTTP responses include headers such as `DJ_TB_SQL_NPLUS1_1`, `DJ_TB_SQL_SLOW_1`, etc., containing SQL query information and UUIDs.
-
-## Locust Test
-
-The Locust test script simulates user behavior by making requests to the Django application. It parses the custom HTTP headers, logs relevant information, and helps identify SQL performance issues.
-
-## Configuration
-
-### Logging
-
-Ensure your logging configuration in `settings.py` is set up to capture SQL profiling logs:
-
-```python
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'django_sql_debug.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
+2. **Locust**
+   - Load testing tool configured to call the Django API
+   - Reports performance metrics and detects issues
 
 
-# Future Enhancements
-django-code-smell: A placeholder folder for future enhancements, where we will add code-smell detection and analysis tools to further improve the quality and performance of the Django application.
-# License
-This project is licensed under the MIT License. See the LICENSE file for details.
+## Setup
 
-# Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or feature requests.
+### Prerequisites
 
-# Contact
-For any questions or support, please contact [yevhenii.dehtiar@gmail.com].
+- Docker
+- Docker Compose
+
+### Running the Application
+
+1. Clone the repository
+2. Run the application with Docker Compose:
+
+```bash
+docker-compose up
+```
+
+3. Access the applications:
+   - Django API: http://localhost:8000/api/
+   - Django Admin: http://localhost:8000/admin/ (username: admin, password: admin)
+   - API Documentation: http://localhost:8000/docs/
+   - Locust Web Interface: http://localhost:8089/
+
+## API Endpoints
+
+- `/api/authors/` - List and create authors
+- `/api/books/` - List and create books
+- `/api/examples/n-plus-one/` - Demonstrates N+1 query problem
+- `/api/examples/optimized/` - Demonstrates optimized query
+- `/api/examples/expensive/` - Demonstrates an expensive query
+
+## Running Load Tests
+
+1. Open the Locust web interface at http://localhost:8089/
+2. Enter the number of users and spawn rate
+3. Start the test
+4. Monitor the results in the Locust web interface
+
+## Architecture
+
+The application is composed of two Docker containers:
+
+1. **Django** - Runs the Django application with the REST API
+2. **Locust** - Runs the Locust load testing tool
+
+The Locust container sends requests to the Django container and collects performance metrics.
+
+## Performance Issues Detection
+
+The application includes a custom middleware that detects:
+
+1. **N+1 Queries** - When a query is executed multiple times in a loop
+2. **Slow Queries** - Queries that take a long time to execute
+
+These issues are reported in the response headers and logged by Locust.
+
+## Extending Performance Cases
+
+See [Tasks to Extend Performance Cases Portfolio](tasks_to_extend_performance_cases.md) for a comprehensive list of planned extensions to the performance cases portfolio.

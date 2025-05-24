@@ -11,8 +11,32 @@ logger = logging.getLogger(__name__)
 
 class UserBehavior(TaskSet):
     @task(1)
-    def index(self):
-        with self.client.get("/", catch_response=True) as response:
+    def get_authors(self):
+        with self.client.get("/api/authors/", catch_response=True) as response:
+            if response.status_code == 200:
+                self.parse_headers(response)
+
+    @task(2)
+    def get_books(self):
+        with self.client.get("/api/books/", catch_response=True) as response:
+            if response.status_code == 200:
+                self.parse_headers(response)
+
+    @task(3)
+    def n_plus_one_example(self):
+        with self.client.get("/api/examples/n-plus-one/", catch_response=True) as response:
+            if response.status_code == 200:
+                self.parse_headers(response)
+
+    @task(3)
+    def optimized_query_example(self):
+        with self.client.get("/api/examples/optimized/", catch_response=True) as response:
+            if response.status_code == 200:
+                self.parse_headers(response)
+
+    @task(3)
+    def expensive_query_example(self):
+        with self.client.get("/api/examples/expensive/", catch_response=True) as response:
             if response.status_code == 200:
                 self.parse_headers(response)
 

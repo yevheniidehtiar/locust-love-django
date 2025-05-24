@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: django-code-smells/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./http_header_profiling_middleware:/app/http_header_profiling_middleware
+    environment:
+      - DEBUG=True
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  locust:
+    build:
+      context: ./locust
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    depends_on:
+      django:
+        condition: service_healthy
+    environment:
+      - TARGET_HOST=http://django:8000
+    command: locust --host=http://django:8000 --web-host=0.0.0.0

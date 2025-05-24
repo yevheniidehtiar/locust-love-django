@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN pip install --upgrade pip
-RUN pip install locust==2.31.4
+RUN pip install locust==2.37.5
 
 # Copy locust files
 COPY locustfile.py /app/

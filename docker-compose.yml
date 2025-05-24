@@ -19,7 +19,7 @@ services:
 
   locust:
     build:
-      context: ./locust
+      context: locust_tests
       dockerfile: Dockerfile
     ports:
       - "8089:8089"

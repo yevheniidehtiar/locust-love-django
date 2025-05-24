@@ -1,8 +1,7 @@
-import locust
+import locust_tests
 import logging
 from locust import HttpUser, TaskSet, task, between
 from locust.runners import MasterRunner
-from locust.stats import stats_printer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -86,7 +85,7 @@ class UserBehavior(TaskSet):
         # Custom metric reporting
         for idx, query in nplus1_queries.items():
             if 'query_info' in query:
-                locust.events.request.fire(
+                locust_tests.events.request.fire(
                     request_type="N+1 Query",
                     name=query['query_info'],
                     response_time=response.elapsed.total_seconds() * 1000,
@@ -97,7 +96,7 @@ class UserBehavior(TaskSet):
 
         for idx, query in slow_queries.items():
             if 'query_info' in query:
-                locust.events.request.fire(
+                locust_tests.events.request.fire(
                     request_type="Slow Query",
                     name=query['query_info'],
                     response_time=response.elapsed.total_seconds() * 1000,
@@ -123,7 +122,7 @@ def custom_stats_printer(environment, **kwargs):
 
 
 # This will print custom stats in the log every 10 seconds
-if isinstance(locust.runners.get_runner(), MasterRunner):
-    locust.events.init.add_listener(
+if isinstance(locust_tests.runners.get_runner(), MasterRunner):
+    locust_tests.events.init.add_listener(
         lambda environment, **kwargs: environment.events.stats_printer.add_listener(custom_stats_printer)
     )

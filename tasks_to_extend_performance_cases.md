@@ -49,7 +49,7 @@ The project currently demonstrates the following performance issues:
    - Create an endpoint that demonstrates caching expensive template fragments
    - Complexity: Medium
 
-8. **Implement Deferred Loading Example**
+8. **Implement Deferred Loading Example** [DONE]
    - Create an endpoint that demonstrates using `defer()` and `only()` to load only necessary fields
    - Complexity: Easy
 
@@ -59,7 +59,7 @@ The project currently demonstrates the following performance issues:
    - Compare with loading all data at once
    - Complexity: Easy
 
-10. **Implement Serializer Optimization Example**
+10. **Implement Serializer Optimization Example** [DONE]
     - Create an endpoint that demonstrates optimizing DRF serializers for better performance
     - Complexity: Medium
 

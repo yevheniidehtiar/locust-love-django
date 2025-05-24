@@ -389,30 +389,87 @@ def get_expensive_query_with_cache(min_year=1950, max_year=2020, min_avg_year=19
 
     return result, execution_time, False
 
-# To make these examples runnable, you would typically use them within a Django view,
-# management command, or tests, where the Django environment is initialized.
+# Functions for demonstrating deferred loading
+def get_books_without_deferred_loading():
+    """
+    This function demonstrates loading all books without using deferred loading.
 
-# Example of how one might call these (conceptually):
-# if __name__ == '__main__':
-#   # This part requires a Django application setup to run.
-#   # Initialize Django settings if running standalone (simplified, not for production)
-#   # import os
-#   # import django
-#   # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings') # Replace 'your_project.settings'
-#   # django.setup()
+    When all fields are loaded, the database query retrieves all columns for each book,
+    which can be inefficient if you only need a subset of the fields, especially if
+    some fields contain large amounts of data.
 
-#   # Create some dummy data (requires Django setup)
-#   # author1 = Author.objects.create(name="J.R.R. Tolkien")
-#   # author2 = Author.objects.create(name="George R.R. Martin")
-#   # Book.objects.create(title="The Hobbit", author=author1, publication_year=1937)
-#   # Book.objects.create(title="The Lord of the Rings", author=author1, publication_year=1954)
-#   # Book.objects.create(title="A Game of Thrones", author=author2, publication_year=1996)
+    Returns:
+        A list of dictionaries containing all book data
+    """
+    # Load all books with all fields
+    books = Book.objects.all()
 
-#   print("Demonstrating N+1 query:")
-#   # print(get_all_books_and_authors_n_plus_one()) # This would make DB queries
+    # Process the books (in a real application, this might involve more complex operations)
+    result = []
+    for book in books:
+        book_data = {
+            "id": book.id,
+            "title": book.title,
+            "author_id": book.author_id,
+            "publication_year": book.publication_year,
+            # In a real model, there might be many more fields here
+        }
+        result.append(book_data)
 
-#   print("\nDemonstrating optimized query:")
-#   # print(get_all_books_and_authors_optimized()) # This would make DB queries
+    return result
 
-#   print("\nDemonstrating potentially expensive query (conceptual):")
-#   # print(get_books_by_authors_with_many_titles_expensive_query(min_books=1))
+def get_books_with_defer():
+    """
+    This function demonstrates using defer() to avoid loading certain fields.
+
+    The defer() method tells Django not to load the specified fields from the database.
+    This can be useful when you have large fields that you don't need for a particular
+    operation, such as text content, JSON data, or other large fields.
+
+    Returns:
+        A list of dictionaries containing book data with some fields deferred
+    """
+    # Load all books but defer the publication_year field
+    # In a real application with more fields, you might defer multiple large fields
+    books = Book.objects.defer('publication_year').all()
+
+    # Process the books
+    result = []
+    for book in books:
+        book_data = {
+            "id": book.id,
+            "title": book.title,
+            "author_id": book.author_id,
+            # Note: publication_year is not included here since it's deferred
+            # If we accessed book.publication_year here, Django would make an additional query
+        }
+        result.append(book_data)
+
+    return result
+
+def get_books_with_only():
+    """
+    This function demonstrates using only() to load only specific fields.
+
+    The only() method tells Django to load only the specified fields from the database.
+    This is the opposite of defer() and can be more efficient when you only need a few
+    fields from a model with many fields.
+
+    Returns:
+        A list of dictionaries containing only the specified book fields
+    """
+    # Load only the id and title fields of all books
+    books = Book.objects.only('id', 'title').all()
+
+    # Process the books
+    result = []
+    for book in books:
+        book_data = {
+            "id": book.id,
+            "title": book.title,
+            # Note: author_id and publication_year are not included here
+            # If we accessed book.author_id or book.publication_year here, Django would make additional queries
+        }
+        result.append(book_data)
+
+    return result

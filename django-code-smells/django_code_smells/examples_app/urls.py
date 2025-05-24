@@ -15,4 +15,6 @@ urlpatterns = [
     path('examples/database-index/', views.database_index_example, name='database-index-example'),
     path('examples/raw-sql/', views.raw_sql_example, name='raw-sql-example'),
     path('examples/query-caching/', views.query_caching_example, name='query-caching-example'),
+    path('examples/deferred-loading/', views.deferred_loading_example, name='deferred-loading-example'),
+    path('examples/serializer-optimization/', views.serializer_optimization_example, name='serializer-optimization-example')
 ]

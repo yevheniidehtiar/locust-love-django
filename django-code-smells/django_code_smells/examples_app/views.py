@@ -2,7 +2,12 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Author, Book
-from .serializers import AuthorSerializer, BookSerializer
+from .serializers import (
+    AuthorSerializer, 
+    BookSerializer,
+    UnoptimizedAuthorSerializer,
+    OptimizedAuthorWithBooksSerializer
+)
 from .query_examples import (
     get_all_books_and_authors_n_plus_one,
     get_all_books_and_authors_optimized,
@@ -14,6 +19,9 @@ from .query_examples import (
     complex_query_with_raw_sql,
     get_expensive_query_without_cache,
     get_expensive_query_with_cache,
+    get_books_without_deferred_loading,
+    get_books_with_defer,
+    get_books_with_only
 )
 
 class AuthorViewSet(viewsets.ModelViewSet):
@@ -211,4 +219,92 @@ def query_caching_example(request):
             "explanation": "On subsequent calls, the results are retrieved from the cache, avoiding the expensive database query."
         },
         "general_explanation": "Caching query results can significantly improve performance by avoiding repeated database hits. This is particularly useful for expensive queries that are called frequently but whose results don't change often."
+    })
+
+@api_view(['GET'])
+def deferred_loading_example(request):
+    """
+    API endpoint that demonstrates the benefits of deferred loading in Django.
+
+    This example shows three approaches:
+    1. Without deferred loading: All fields are loaded from the database
+    2. With defer(): Specific fields are deferred (not loaded) from the database
+    3. With only(): Only specific fields are loaded from the database
+
+    Deferred loading is useful for:
+    - Models with many fields, especially large text or binary fields
+    - When you only need a subset of fields for a particular operation
+    - Reducing the amount of data transferred from the database
+    """
+    # Get books without deferred loading (all fields are loaded)
+    without_deferred = get_books_without_deferred_loading()
+
+    # Get books with defer() (specific fields are not loaded)
+    with_defer = get_books_with_defer()
+
+    # Get books with only() (only specific fields are loaded)
+    with_only = get_books_with_only()
+
+    return Response({
+        "without_deferred_loading": {
+            "results": without_deferred,
+            "explanation": "Without deferred loading, all fields are loaded from the database, which can be inefficient if you don't need all fields."
+        },
+        "with_defer": {
+            "results": with_defer,
+            "explanation": "With defer(), specific fields are not loaded from the database until accessed, which can improve performance if those fields are large or not needed."
+        },
+        "with_only": {
+            "results": with_only,
+            "explanation": "With only(), only the specified fields are loaded from the database, which can be more efficient when you only need a few fields from a model with many fields."
+        },
+        "general_explanation": "Deferred loading allows you to optimize database queries by loading only the fields you need. This can significantly reduce the amount of data transferred from the database and improve performance, especially for models with many fields or large text/binary fields."
+    })
+
+@api_view(['GET'])
+def serializer_optimization_example(request):
+    """
+    API endpoint that demonstrates optimizing DRF serializers for better performance.
+
+    This example shows two approaches:
+    1. Unoptimized: Using nested serializers without optimizing the queryset
+    2. Optimized: Using nested serializers with proper queryset optimization
+
+    Serializer optimization is useful for:
+    - Reducing the number of database queries (avoiding N+1 query problems)
+    - Improving response times for complex nested resources
+    - Reducing server load and memory usage
+    - Providing a more efficient API
+    """
+    # Get all authors using an unoptimized approach
+    # This will cause N+1 queries when accessing books and book counts
+    unoptimized_authors = Author.objects.all()
+    unoptimized_serializer = UnoptimizedAuthorSerializer(unoptimized_authors, many=True)
+
+    # Get all authors using an optimized approach
+    # This prefetches related books and annotates book counts in a single query
+    optimized_authors = Author.objects.prefetch_related(
+        'books'  # Prefetch related books to avoid N+1 queries
+    ).annotate(
+        book_count=Count('books')  # Annotate book count to avoid additional queries
+    )
+    optimized_serializer = OptimizedAuthorWithBooksSerializer(optimized_authors, many=True)
+
+    return Response({
+        "unoptimized_approach": {
+            "results": unoptimized_serializer.data,
+            "explanation": "The unoptimized approach causes N+1 queries: 1 query to get all authors, then N queries (one per author) to get their books, plus N more queries to count books."
+        },
+        "optimized_approach": {
+            "results": optimized_serializer.data,
+            "explanation": "The optimized approach uses prefetch_related to load all books in a single query and annotates the book count in the same query that fetches authors."
+        },
+        "optimization_techniques": {
+            "prefetch_related": "Use prefetch_related to efficiently load related objects in a separate query, avoiding N+1 queries.",
+            "select_related": "Use select_related for ForeignKey relationships to fetch related objects in the same query using a JOIN.",
+            "annotations": "Use annotations to calculate values in the database rather than in Python.",
+            "read_only_fields": "Use read_only=True for fields that don't need to be updated to avoid unnecessary processing.",
+            "serializer_design": "Design serializers to minimize nested relationships and avoid redundant data."
+        },
+        "general_explanation": "Optimizing serializers is crucial for API performance, especially with nested resources. The key is to minimize database queries by using Django's queryset methods like prefetch_related, select_related, and annotate."
     })

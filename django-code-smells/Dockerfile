@@ -3,11 +3,14 @@ FROM python:3.11-slim
 # Install curl for healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
+# Create directory for database
+RUN mkdir -p /var/lib/django
+
 WORKDIR /app
 
-# Copy entrypoint script
-COPY django-code-smells/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Copy entrypoint script to a location in PATH
+COPY django-code-smells/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Install dependencies
 RUN pip install --upgrade pip
@@ -36,5 +39,5 @@ RUN echo "from examples_app.models import Author, Book; \
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["start"]

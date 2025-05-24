@@ -139,6 +139,10 @@ lint:
 	@echo "Running linting checks..."
 	ruff check .
 
+fix:
+	@echo "Running linting and formatting fixes..."
+	ruff check . --fix && ruff format .
+
 # Clean up temporary files
 clean:
 	@echo "Cleaning up temporary files..."

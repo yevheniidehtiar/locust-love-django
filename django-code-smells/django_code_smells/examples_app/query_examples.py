@@ -1,5 +1,5 @@
 from .models import Author, Book, Product, IndexedProduct
-from django.db.models import Avg, Count, F, Sum, Q
+from django.db.models import Avg, Count
 from django.db import connection
 from django.core.cache import cache
 import time
@@ -8,6 +8,7 @@ import time
 # For a real scenario, you'd have a Django management command or a test setup to populate this.
 # We'll define functions that *would* cause N+1 if Author and Book objects were in the database
 # and queried this way.
+
 
 def get_all_books_and_authors_n_plus_one():
     """
@@ -20,19 +21,23 @@ def get_all_books_and_authors_n_plus_one():
     author_names = []
     for book in books:
         # Accessing book.author.name triggers a new query for each book
-        author_names.append(book.author.name) # N additional queries
+        author_names.append(book.author.name)  # N additional queries
     return author_names
+
 
 def get_all_books_and_authors_optimized():
     """
     This function shows the optimized version using select_related
     to avoid N+1 queries.
     """
-    books = Book.objects.select_related('author').all() # Fetches all books and their authors (1 query)
+    books = Book.objects.select_related(
+        "author"
+    ).all()  # Fetches all books and their authors (1 query)
     author_names = []
     for book in books:
-        author_names.append(book.author.name) # No additional queries
+        author_names.append(book.author.name)  # No additional queries
     return author_names
+
 
 def get_books_by_authors_with_many_titles_expensive_query(min_books=5):
     """
@@ -71,6 +76,7 @@ def get_books_by_authors_with_many_titles_expensive_query(min_books=5):
     # as running complex ORM queries without a Django environment is not feasible here.
     pass
 
+
 def get_author_stats_without_annotation():
     """
     This function demonstrates calculating author statistics without using annotations.
@@ -86,18 +92,21 @@ def get_author_stats_without_annotation():
         # Calculate statistics in Python
         total_books = len(books)
         if total_books > 0:
-            avg_publication_year = sum(book.publication_year for book in books) / total_books
+            avg_publication_year = (
+                sum(book.publication_year for book in books) / total_books
+            )
         else:
             avg_publication_year = 0
 
         author_data = {
             "name": author.name,
             "total_books": total_books,
-            "avg_publication_year": avg_publication_year
+            "avg_publication_year": avg_publication_year,
         }
         result.append(author_data)
 
     return result
+
 
 def get_author_stats_with_annotation():
     """
@@ -106,8 +115,7 @@ def get_author_stats_with_annotation():
     """
     # Use annotations to calculate statistics in a single query
     authors = Author.objects.annotate(
-        total_books=Count('books'),
-        avg_publication_year=Avg('books__publication_year')
+        total_books=Count("books"), avg_publication_year=Avg("books__publication_year")
     )
 
     result = []
@@ -115,11 +123,13 @@ def get_author_stats_with_annotation():
         author_data = {
             "name": author.name,
             "total_books": author.total_books,
-            "avg_publication_year": author.avg_publication_year or 0  # Handle None for authors with no books
+            "avg_publication_year": author.avg_publication_year
+            or 0,  # Handle None for authors with no books
         }
         result.append(author_data)
 
     return result
+
 
 def query_product_without_index(sku_pattern):
     """
@@ -139,14 +149,17 @@ def query_product_without_index(sku_pattern):
 
     result = []
     for product in products:
-        result.append({
-            "id": product.id,
-            "name": product.name,
-            "sku": product.sku,
-            "price": str(product.price)
-        })
+        result.append(
+            {
+                "id": product.id,
+                "name": product.name,
+                "sku": product.sku,
+                "price": str(product.price),
+            }
+        )
 
     return result
+
 
 def query_product_with_index(sku_pattern):
     """
@@ -166,14 +179,17 @@ def query_product_with_index(sku_pattern):
 
     result = []
     for product in products:
-        result.append({
-            "id": product.id,
-            "name": product.name,
-            "sku": product.sku,
-            "price": str(product.price)
-        })
+        result.append(
+            {
+                "id": product.id,
+                "name": product.name,
+                "sku": product.sku,
+                "price": str(product.price),
+            }
+        )
 
     return result
+
 
 def complex_query_with_orm(min_year=1950, max_year=2020, min_avg_year=1980):
     """
@@ -197,8 +213,7 @@ def complex_query_with_orm(min_year=1950, max_year=2020, min_avg_year=1980):
     """
     # First, get authors who have books in the specified year range
     authors_with_books_in_range = Author.objects.filter(
-        books__publication_year__gte=min_year,
-        books__publication_year__lte=max_year
+        books__publication_year__gte=min_year, books__publication_year__lte=max_year
     ).distinct()
 
     # Then, for each author, calculate statistics and filter by average year
@@ -215,15 +230,18 @@ def complex_query_with_orm(min_year=1950, max_year=2020, min_avg_year=1980):
 
             # Only include authors with average year above threshold
             if avg_year >= min_avg_year:
-                result.append({
-                    "author_id": author.id,
-                    "author_name": author.name,
-                    "book_count": book_count,
-                    "avg_publication_year": avg_year,
-                    "most_recent_year": max_year
-                })
+                result.append(
+                    {
+                        "author_id": author.id,
+                        "author_name": author.name,
+                        "book_count": book_count,
+                        "avg_publication_year": avg_year,
+                        "most_recent_year": max_year,
+                    }
+                )
 
     return result
+
 
 def complex_query_with_raw_sql(min_year=1950, max_year=2020, min_avg_year=1980):
     """
@@ -274,6 +292,7 @@ def complex_query_with_raw_sql(min_year=1950, max_year=2020, min_avg_year=1980):
 
     return results
 
+
 def get_expensive_query_without_cache(min_year=1950, max_year=2020, min_avg_year=1980):
     """
     This function demonstrates an expensive query without caching.
@@ -297,8 +316,7 @@ def get_expensive_query_without_cache(min_year=1950, max_year=2020, min_avg_year
 
     # Execute the query (using the same query as in complex_query_with_orm for consistency)
     authors_with_books_in_range = Author.objects.filter(
-        books__publication_year__gte=min_year,
-        books__publication_year__lte=max_year
+        books__publication_year__gte=min_year, books__publication_year__lte=max_year
     ).distinct()
 
     result = []
@@ -310,20 +328,25 @@ def get_expensive_query_without_cache(min_year=1950, max_year=2020, min_avg_year
             max_year = max(book.publication_year for book in books)
 
             if avg_year >= min_avg_year:
-                result.append({
-                    "author_id": author.id,
-                    "author_name": author.name,
-                    "book_count": book_count,
-                    "avg_publication_year": avg_year,
-                    "most_recent_year": max_year
-                })
+                result.append(
+                    {
+                        "author_id": author.id,
+                        "author_name": author.name,
+                        "book_count": book_count,
+                        "avg_publication_year": avg_year,
+                        "most_recent_year": max_year,
+                    }
+                )
 
     # Calculate the time taken
     execution_time = time.time() - start_time
 
     return result, execution_time
 
-def get_expensive_query_with_cache(min_year=1950, max_year=2020, min_avg_year=1980, cache_timeout=60):
+
+def get_expensive_query_with_cache(
+    min_year=1950, max_year=2020, min_avg_year=1980, cache_timeout=60
+):
     """
     This function demonstrates the same expensive query with caching.
 
@@ -360,8 +383,7 @@ def get_expensive_query_with_cache(min_year=1950, max_year=2020, min_avg_year=19
 
     # Execute the query (same as without cache)
     authors_with_books_in_range = Author.objects.filter(
-        books__publication_year__gte=min_year,
-        books__publication_year__lte=max_year
+        books__publication_year__gte=min_year, books__publication_year__lte=max_year
     ).distinct()
 
     result = []
@@ -373,13 +395,15 @@ def get_expensive_query_with_cache(min_year=1950, max_year=2020, min_avg_year=19
             max_year = max(book.publication_year for book in books)
 
             if avg_year >= min_avg_year:
-                result.append({
-                    "author_id": author.id,
-                    "author_name": author.name,
-                    "book_count": book_count,
-                    "avg_publication_year": avg_year,
-                    "most_recent_year": max_year
-                })
+                result.append(
+                    {
+                        "author_id": author.id,
+                        "author_name": author.name,
+                        "book_count": book_count,
+                        "avg_publication_year": avg_year,
+                        "most_recent_year": max_year,
+                    }
+                )
 
     # Store the results in the cache for future use
     cache.set(cache_key, result, cache_timeout)
@@ -388,6 +412,7 @@ def get_expensive_query_with_cache(min_year=1950, max_year=2020, min_avg_year=19
     execution_time = time.time() - start_time
 
     return result, execution_time, False
+
 
 # Functions for demonstrating deferred loading
 def get_books_without_deferred_loading():
@@ -418,6 +443,7 @@ def get_books_without_deferred_loading():
 
     return result
 
+
 def get_books_with_defer():
     """
     This function demonstrates using defer() to avoid loading certain fields.
@@ -431,7 +457,7 @@ def get_books_with_defer():
     """
     # Load all books but defer the publication_year field
     # In a real application with more fields, you might defer multiple large fields
-    books = Book.objects.defer('publication_year').all()
+    books = Book.objects.defer("publication_year").all()
 
     # Process the books
     result = []
@@ -447,6 +473,7 @@ def get_books_with_defer():
 
     return result
 
+
 def get_books_with_only():
     """
     This function demonstrates using only() to load only specific fields.
@@ -459,7 +486,7 @@ def get_books_with_only():
         A list of dictionaries containing only the specified book fields
     """
     # Load only the id and title fields of all books
-    books = Book.objects.only('id', 'title').all()
+    books = Book.objects.only("id", "title").all()
 
     # Process the books
     result = []

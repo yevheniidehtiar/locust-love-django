@@ -20,6 +20,8 @@ class EmployeeAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'department_name', 'manager_name', 'salary')
     list_filter = ('department', 'hire_date')
     search_fields = ('first_name', 'last_name', 'email')
+    # To fix N+1 queries from department_name and manager_name, add:
+    # list_select_related = ('department', 'manager')
     
     # This method causes N+1 queries because it accesses related objects
     def department_name(self, obj):
@@ -39,7 +41,29 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'code', 'department_name', 'start_date', 'end_date', 'budget', 'employee_count', 'task_count')
     list_filter = ('department', 'start_date')
     search_fields = ('name', 'code', 'description')
-    
+    # To fix N+1 query from department_name, add:
+    # list_select_related = ('department',)
+    # To fix N+1 queries from employee_count and task_count,
+    # override get_queryset and use annotate with Count. E.g.,
+    # from django.db.models import Count
+    # def get_queryset(self, request):
+    #     queryset = super().get_queryset(request)
+    #     queryset = queryset.annotate(
+    #         employee_count_annotated=Count('employees', distinct=True),
+    #         task_count_annotated=Count('tasks', distinct=True)
+    #     )
+    #     return queryset
+    # Then update list_display to use the annotated fields:
+    # list_display = (..., 'employee_count_annotated', 'task_count_annotated')
+    # And define methods for these fields:
+    # def employee_count(self, obj):
+    #    return obj.employee_count_annotated
+    # employee_count.admin_order_field = 'employee_count_annotated'
+    #
+    # def task_count(self, obj):
+    #    return obj.task_count_annotated
+    # task_count.admin_order_field = 'task_count_annotated'
+
     # These methods cause N+1 queries
     def department_name(self, obj):
         return obj.department.name
@@ -58,6 +82,8 @@ class ProjectAssignmentAdmin(admin.ModelAdmin):
     list_display = ('project_name', 'employee_name', 'role', 'assignment_date', 'hours_allocated')
     list_filter = ('role', 'assignment_date')
     search_fields = ('project__name', 'employee__first_name', 'employee__last_name', 'role')
+    # To fix N+1 queries from project_name and employee_name, add:
+    # list_select_related = ('project', 'employee')
     
     # These methods cause N+1 queries
     def project_name(self, obj):
@@ -72,6 +98,8 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('title', 'project_name', 'uploaded_by_name', 'upload_date', 'file_type', 'content_size')
     list_filter = ('file_type', 'upload_date')
     search_fields = ('title', 'project__name', 'uploaded_by__first_name', 'uploaded_by__last_name')
+    # To fix N+1 queries from project_name and uploaded_by_name, add:
+    # list_select_related = ('project', 'uploaded_by')
     
     # These methods cause N+1 queries
     def project_name(self, obj):
@@ -95,6 +123,8 @@ class TaskAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'project__name', 
                     'assigned_to__first_name', 'assigned_to__last_name',
                     'created_by__first_name', 'created_by__last_name')
+    # To fix N+1 queries from project_name, assigned_to_name, created_by_name, and parent_task_title, add:
+    # list_select_related = ('project', 'assigned_to', 'created_by', 'parent_task')
     
     # These methods cause N+1 queries
     def project_name(self, obj):

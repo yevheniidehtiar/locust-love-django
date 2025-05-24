@@ -97,6 +97,10 @@ run-locust:
 	@echo "Running Locust load testing..."
 	cd locust && locust --host=http://localhost:8000
 
+locust-ci-run:
+	@echo "Running Locust CI tests..."
+	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --exit-code-on-error 1
+
 # Docker commands
 docker-build:
 	@echo "Building Docker images..."
@@ -133,9 +137,11 @@ docker-clean:
 # Linting
 lint:
 	@echo "Running linting checks..."
-	flake8 django-code-smells/django_code_smells
-	flake8 locust
-	flake8 http_header_profiling_middleware
+	ruff check .
+
+fix:
+	@echo "Running linting and formatting fixes..."
+	ruff check . --fix && ruff format .
 
 # Clean up temporary files
 clean:

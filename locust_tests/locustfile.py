@@ -1,4 +1,4 @@
-import locust_tests
+import locust
 import logging
 from locust import HttpUser, TaskSet, task, between
 from locust.runners import MasterRunner
@@ -23,31 +23,41 @@ class UserBehavior(TaskSet):
 
     @task(3)
     def n_plus_one_example(self):
-        with self.client.get("/api/examples/n-plus-one/", catch_response=True) as response:
+        with self.client.get(
+            "/api/examples/n-plus-one/", catch_response=True
+        ) as response:
             if response.status_code == 200:
                 self.parse_headers(response)
 
     @task(3)
     def optimized_query_example(self):
-        with self.client.get("/api/examples/optimized/", catch_response=True) as response:
+        with self.client.get(
+            "/api/examples/optimized/", catch_response=True
+        ) as response:
             if response.status_code == 200:
                 self.parse_headers(response)
 
     @task(3)
     def expensive_query_example(self):
-        with self.client.get("/api/examples/expensive/", catch_response=True) as response:
+        with self.client.get(
+            "/api/examples/expensive/", catch_response=True
+        ) as response:
             if response.status_code == 200:
                 self.parse_headers(response)
 
     @task(3)
     def complex_nested_queries_example(self):
-        with self.client.get("/api/examples/complex-nested-queries/", catch_response=True) as response:
+        with self.client.get(
+            "/api/examples/complex-nested-queries/", catch_response=True
+        ) as response:
             if response.status_code == 200:
                 self.parse_headers(response)
 
     @task(3)
     def department_performance_analysis_example(self):
-        with self.client.get("/api/examples/department-performance-analysis/", catch_response=True) as response:
+        with self.client.get(
+            "/api/examples/department-performance-analysis/", catch_response=True
+        ) as response:
             if response.status_code == 200:
                 self.parse_headers(response)
 
@@ -59,35 +69,35 @@ class UserBehavior(TaskSet):
         # Parse N+1 query headers
         for key, value in headers.items():
             if key.startswith("DJ_TB_SQL_NPLUS1"):
-                query_index = key.split('_')[-1]
+                query_index = key.split("_")[-1]
                 if "STACK" in query_index:
-                    nplus1_queries.setdefault(query_index[:-6], {})['stack'] = value
+                    nplus1_queries.setdefault(query_index[:-6], {})["stack"] = value
                 else:
-                    nplus1_queries[query_index] = {'query_info': value}
+                    nplus1_queries[query_index] = {"query_info": value}
 
             # Parse Slow query headers
             if key.startswith("DJ_TB_SQL_SLOW"):
-                query_index = key.split('_')[-1]
+                query_index = key.split("_")[-1]
                 if "STACK" in query_index:
-                    slow_queries.setdefault(query_index[:-6], {})['stack'] = value
+                    slow_queries.setdefault(query_index[:-6], {})["stack"] = value
                 else:
-                    slow_queries[query_index] = {'query_info': value}
+                    slow_queries[query_index] = {"query_info": value}
 
         # Log stack traces
         for idx, query in nplus1_queries.items():
-            if 'stack' in query:
+            if "stack" in query:
                 logger.info(f"N+1 Query Stack Trace {idx}: {query['stack']}")
 
         for idx, query in slow_queries.items():
-            if 'stack' in query:
+            if "stack" in query:
                 logger.info(f"Slow Query Stack Trace {idx}: {query['stack']}")
 
         # Custom metric reporting
         for idx, query in nplus1_queries.items():
-            if 'query_info' in query:
-                locust_tests.events.request.fire(
+            if "query_info" in query:
+                locust.events.request.fire(
                     request_type="N+1 Query",
-                    name=query['query_info'],
+                    name=query["query_info"],
                     response_time=response.elapsed.total_seconds() * 1000,
                     response_length=0,
                     exception=None,
@@ -95,10 +105,10 @@ class UserBehavior(TaskSet):
                 )
 
         for idx, query in slow_queries.items():
-            if 'query_info' in query:
-                locust_tests.events.request.fire(
+            if "query_info" in query:
+                locust.events.request.fire(
                     request_type="Slow Query",
-                    name=query['query_info'],
+                    name=query["query_info"],
                     response_time=response.elapsed.total_seconds() * 1000,
                     response_length=0,
                     exception=None,
@@ -122,7 +132,9 @@ def custom_stats_printer(environment, **kwargs):
 
 
 # This will print custom stats in the log every 10 seconds
-if isinstance(locust_tests.runners.get_runner(), MasterRunner):
-    locust_tests.events.init.add_listener(
-        lambda environment, **kwargs: environment.events.stats_printer.add_listener(custom_stats_printer)
+if isinstance(locust.runners.get_runner(), MasterRunner):
+    locust.events.init.add_listener(
+        lambda environment, **kwargs: environment.events.stats_printer.add_listener(
+            custom_stats_printer
+        )
     )

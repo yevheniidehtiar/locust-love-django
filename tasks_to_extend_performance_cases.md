@@ -42,77 +42,37 @@ The project currently demonstrates the following performance issues:
    - Create an endpoint that demonstrates caching query results to avoid repeated database hits
    - Complexity: Medium
 
-### 2. Template and View Optimization
+### 2. N+1 Query Detection and Prevention
 
 #### High Priority
-7. **Implement Template Fragment Caching Example**
-   - Create an endpoint that demonstrates caching expensive template fragments
+7. **Implement Admin List Views with N+1 Queries** [DONE]
+   - Create admin list views where joined columns trigger N+1 queries
+   - Demonstrate how to fix with `select_related` and `prefetch_related`
    - Complexity: Medium
 
-8. **Implement Deferred Loading Example** [DONE]
-   - Create an endpoint that demonstrates using `defer()` and `only()` to load only necessary fields
-   - Complexity: Easy
+8. **Implement Admin List View with Large Blob Fields** [DONE]
+   - Create an admin list view with a model containing a large binary field (2MB)
+   - Show performance impact of loading these fields in list views
+   - Demonstrate how to optimize with `defer()` or custom admin methods
+   - Complexity: Medium
 
-#### Medium Priority
-9. **Implement Pagination Example**
-   - Create an endpoint that demonstrates proper pagination for large datasets
-   - Compare with loading all data at once
-   - Complexity: Easy
+9. **Implement Complex Nested Functions with N+1 Queries** [DONE]
+   - Create a job with complicated nested functions that use model objects
+   - Functions should access related models in ways that trigger N+1 queries
+   - Make the N+1 issues hard to detect during code review
+   - Complexity: Hard
 
-10. **Implement Serializer Optimization Example** [DONE]
-    - Create an endpoint that demonstrates optimizing DRF serializers for better performance
-    - Complexity: Medium
-
-### 3. Middleware and Request Processing
-
-#### High Priority
-11. **Implement Middleware Overhead Example**
-    - Create an example that demonstrates the performance impact of middleware
-    - Show how to optimize middleware execution
+10. **Implement Department Performance Analysis with Hidden N+1 Queries** [DONE]
+    - Create a complex business logic function that analyzes department performance
+    - Include multiple levels of nested function calls that obscure database access patterns
+    - Demonstrate how tools can detect these issues even when they're hard for humans to spot
     - Complexity: Hard
 
-12. **Implement Request Caching Example**
-    - Create an endpoint that demonstrates caching entire responses
-    - Complexity: Medium
 
-#### Medium Priority
-13. **Implement Conditional Processing Example**
-    - Create an endpoint that demonstrates using HTTP conditional processing (ETag, If-Modified-Since)
-    - Complexity: Hard
 
-### 4. Asynchronous Processing
-
-#### High Priority
-14. **Implement Background Task Example**
-    - Create an endpoint that demonstrates offloading heavy processing to background tasks
-    - Complexity: Hard
-
-#### Medium Priority
-15. **Implement Streaming Response Example**
-    - Create an endpoint that demonstrates using streaming responses for large data sets
-    - Complexity: Medium
-
-### 5. Memory Usage Optimization
-
-#### Medium Priority
-16. **Implement Memory Profiling Example**
-    - Create an endpoint that demonstrates memory-intensive operations and how to optimize them
-    - Complexity: Hard
-
-17. **Implement Iterator Usage Example**
-    - Create an endpoint that demonstrates using iterators instead of loading all data into memory
-    - Complexity: Medium
 
 ## Implementation Plan
 
-### Phase 1 (High Priority Tasks)
-- Tasks 1, 2, 3, 7, 8, 11, 12, 14
-
-### Phase 2 (Medium Priority Tasks)
-- Tasks 4, 5, 6, 9, 10, 13, 15
-
-### Phase 3 (Remaining Tasks)
-- Tasks 16, 17
 
 ## Expected Outcomes
 Implementing these tasks will:

@@ -40,6 +40,18 @@ class UserBehavior(TaskSet):
             if response.status_code == 200:
                 self.parse_headers(response)
 
+    @task(3)
+    def complex_nested_queries_example(self):
+        with self.client.get("/api/examples/complex-nested-queries/", catch_response=True) as response:
+            if response.status_code == 200:
+                self.parse_headers(response)
+
+    @task(3)
+    def department_performance_analysis_example(self):
+        with self.client.get("/api/examples/department-performance-analysis/", catch_response=True) as response:
+            if response.status_code == 200:
+                self.parse_headers(response)
+
     def parse_headers(self, response):
         headers = response.headers
         nplus1_queries = {}

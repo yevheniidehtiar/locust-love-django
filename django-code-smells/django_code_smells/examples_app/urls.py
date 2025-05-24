@@ -16,5 +16,7 @@ urlpatterns = [
     path('examples/raw-sql/', views.raw_sql_example, name='raw-sql-example'),
     path('examples/query-caching/', views.query_caching_example, name='query-caching-example'),
     path('examples/deferred-loading/', views.deferred_loading_example, name='deferred-loading-example'),
-    path('examples/serializer-optimization/', views.serializer_optimization_example, name='serializer-optimization-example')
+    path('examples/serializer-optimization/', views.serializer_optimization_example, name='serializer-optimization-example'),
+    path('examples/complex-nested-queries/', views.complex_nested_queries_example, name='complex-nested-queries-example'),
+    path('examples/department-performance-analysis/', views.department_performance_analysis_example, name='department-performance-analysis-example')
 ]

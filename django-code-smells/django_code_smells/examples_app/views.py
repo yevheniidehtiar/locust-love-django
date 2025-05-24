@@ -23,6 +23,10 @@ from .query_examples import (
     get_books_with_defer,
     get_books_with_only
 )
+from .complex_queries import (
+    get_project_performance_report,
+    analyze_department_performance
+)
 
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
@@ -307,4 +311,85 @@ def serializer_optimization_example(request):
             "serializer_design": "Design serializers to minimize nested relationships and avoid redundant data."
         },
         "general_explanation": "Optimizing serializers is crucial for API performance, especially with nested resources. The key is to minimize database queries by using Django's queryset methods like prefetch_related, select_related, and annotate."
+    })
+
+@api_view(['GET'])
+def complex_nested_queries_example(request):
+    """
+    API endpoint that demonstrates complex nested functions with N+1 queries.
+
+    This example shows a complex project performance report generation with multiple
+    nested function calls that cause N+1 queries. These issues are hard to detect
+    during code review but can significantly impact performance.
+
+    The function has several nested helper functions that each access related
+    objects, causing N+1 queries in ways that are not immediately obvious.
+    """
+    # Use a sample project code for the demonstration
+    project_code = "PROJ001"
+
+    # Generate the project performance report
+    report = get_project_performance_report(project_code)
+
+    return Response({
+        "project_performance_report": report,
+        "explanation": "This report is generated using multiple nested functions that access related objects, causing N+1 queries. These issues are hard to detect during code review but can be caught by performance monitoring tools.",
+        "n_plus_1_issues": [
+            "Accessing project.department triggers a query for each project",
+            "Calling department.projects.count() triggers another query",
+            "Iterating through assignments and accessing assignment.employee triggers N queries",
+            "Accessing employee.department and employee.manager triggers additional queries",
+            "Filtering tasks by project and employee triggers queries for each team member",
+            "Accessing task.assigned_to triggers queries for each task",
+            "Accessing subtask.assigned_to triggers queries for each subtask",
+            "Loading document.content (large blob field) for each document is expensive"
+        ],
+        "optimization_strategies": [
+            "Use select_related for ForeignKey relationships (project.department, assignment.employee)",
+            "Use prefetch_related for reverse relationships (department.projects, project.tasks)",
+            "Batch process related objects to avoid nested loops with database queries",
+            "Use annotations to calculate counts and aggregates in the database",
+            "Defer loading of large fields like document.content until needed"
+        ]
+    })
+
+@api_view(['GET'])
+def department_performance_analysis_example(request):
+    """
+    API endpoint that demonstrates a complex department performance analysis with hidden N+1 queries.
+
+    This example shows a complex business logic function with multiple levels of nested
+    function calls that obscure database access patterns. The N+1 query issues are
+    particularly hard to detect during code review but can be caught by tools.
+    """
+    # Use a sample department code for the demonstration
+    department_code = "HR"
+
+    # Analyze the department performance
+    analysis = analyze_department_performance(department_code)
+
+    return Response({
+        "department_performance_analysis": analysis,
+        "explanation": "This analysis is performed using complex business logic with multiple levels of nested function calls that obscure database access patterns. The N+1 query issues are particularly hard to detect during code review.",
+        "hidden_n_plus_1_issues": [
+            "Iterating through projects and calling analyze_single_project triggers multiple queries",
+            "Calling get_employee_performance triggers queries for each employee",
+            "Accessing employee.manager.full_name triggers nested queries",
+            "Filtering tasks by project and date range inside a loop triggers N queries",
+            "Iterating through projects and accessing project_tasks inside calculate_overall_metrics triggers N queries",
+            "Accessing task.is_overdue property may trigger additional queries for each task"
+        ],
+        "detection_challenges": [
+            "Multiple levels of function calls hide the database access patterns",
+            "Business logic complexity makes it hard to track all database interactions",
+            "Property accessors like is_overdue hide potential database queries",
+            "Filtering within loops is not immediately recognizable as an N+1 issue",
+            "Aggregating data from multiple sources obscures the total query count"
+        ],
+        "tool_benefits": [
+            "Automated tools can trace all database queries regardless of code complexity",
+            "Performance monitoring can identify N+1 patterns even in deeply nested code",
+            "Query counting and timing can reveal issues not visible during code review",
+            "Profiling can identify specific functions and lines causing the most queries"
+        ]
     })

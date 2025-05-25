@@ -131,8 +131,20 @@ class Command(BaseCommand):
 
         batches = count // batch_size + (1 if count % batch_size else 0)
 
+        # Get the current max department code to ensure uniqueness
+        max_dept_code = 0
+        try:
+            latest_dept = Department.objects.filter(code__startswith="DEPT-").order_by('-code').first()
+            if latest_dept:
+                # Extract the numeric part from the code (e.g., "DEPT-042" -> 42)
+                max_dept_code = int(latest_dept.code.split('-')[1])
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f"Could not determine max department code: {e}"))
+
+        departments_created = 0
+
         for i in range(batches):
-            batch_count = min(batch_size, count - i * batch_size)
+            batch_count = min(batch_size, count - departments_created)
             if batch_count <= 0:
                 break
 
@@ -142,7 +154,11 @@ class Command(BaseCommand):
             batch_start = time.time()
 
             with transaction.atomic():
-                DepartmentFactory.create_batch(batch_count)
+                for j in range(batch_count):
+                    # Manually increment the code to ensure uniqueness
+                    max_dept_code += 1
+                    DepartmentFactory.create(code=f"DEPT-{max_dept_code:03d}")
+                    departments_created += 1
 
             batch_elapsed = time.time() - batch_start
             self.stdout.write(f"  Batch completed in {batch_elapsed:.2f} seconds")
@@ -150,7 +166,7 @@ class Command(BaseCommand):
         elapsed_time = time.time() - start_time
         self.stdout.write(
             self.style.SUCCESS(
-                f"Generated {count} departments in {elapsed_time:.2f} seconds"
+                f"Generated {departments_created} departments in {elapsed_time:.2f} seconds"
             )
         )
 
@@ -173,6 +189,15 @@ class Command(BaseCommand):
         )
         start_time = time.time()
 
+        # Get the current max employee ID to ensure uniqueness in usernames
+        max_employee_id = 0
+        try:
+            latest_employee = Employee.objects.order_by('-id').first()
+            if latest_employee:
+                max_employee_id = latest_employee.id
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f"Could not determine max employee ID: {e}"))
+
         batches = total_employees // batch_size + (
             1 if total_employees % batch_size else 0
         )
@@ -193,7 +218,14 @@ class Command(BaseCommand):
                     # Distribute employees evenly among departments
                     dept_index = (employees_created + j) % dept_count
                     department = departments[dept_index]
-                    EmployeeFactory.create(department=department)
+
+                    # Create employee with a unique sequence number in the username
+                    employee_seq = max_employee_id + employees_created + j + 1
+                    employee = EmployeeFactory.create(department=department)
+
+                    # Ensure username uniqueness by appending a sequence number
+                    employee.username = f"{employee.username}.{employee_seq}"
+                    employee.save()
 
             employees_created += batch_count
             batch_elapsed = time.time() - batch_start
@@ -272,6 +304,16 @@ class Command(BaseCommand):
         )
         start_time = time.time()
 
+        # Get the current max project code to ensure uniqueness
+        max_proj_code = 0
+        try:
+            latest_proj = Project.objects.filter(code__startswith="PROJ-").order_by('-code').first()
+            if latest_proj:
+                # Extract the numeric part from the code (e.g., "PROJ-0042" -> 42)
+                max_proj_code = int(latest_proj.code.split('-')[1])
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f"Could not determine max project code: {e}"))
+
         batches = total_projects // batch_size + (
             1 if total_projects % batch_size else 0
         )
@@ -292,7 +334,9 @@ class Command(BaseCommand):
                     # Distribute projects evenly among departments
                     dept_index = (projects_created + j) % dept_count
                     department = departments[dept_index]
-                    ProjectFactory.create(department=department)
+                    # Manually increment the code to ensure uniqueness
+                    max_proj_code += 1
+                    ProjectFactory.create(department=department, code=f"PROJ-{max_proj_code:04d}")
 
             projects_created += batch_count
             batch_elapsed = time.time() - batch_start

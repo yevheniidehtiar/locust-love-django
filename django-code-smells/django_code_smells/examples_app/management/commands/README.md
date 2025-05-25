@@ -2,14 +2,6 @@
 
 This directory contains Django management commands for generating large volumes of test data to support performance testing. These commands use factory_boy to create realistic test data with appropriate relationships between models.
 
-## Installation
-
-Ensure you have the required dependencies installed:
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Available Commands
 
 ### 1. Generate Simple Data

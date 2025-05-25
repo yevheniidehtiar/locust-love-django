@@ -41,6 +41,8 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+    volumes:
+      - ./locust_reports:/locust_reports
     command: locust --host=http://django:8000 --web-host=0.0.0.0 --loglevel=DEBUG --logfile=-
     logging:
       driver: "json-file"

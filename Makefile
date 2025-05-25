@@ -123,9 +123,14 @@ run-locust:
 	@echo "Running Locust load testing..."
 	cd locust && locust --host=http://localhost:8000
 
+populate-data-ci:
+	@echo "Populating database with test data..."
+	docker compose exec django python manage.py populate_test_data
+
 locust-ci-run:
 	@echo "Running Locust CI tests..."
-	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --exit-code-on-error 1
+	$(MAKE) populate-data-ci
+	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --exit-code-on-error 1 --html /locust_reports/locust_report.html
 
 # Docker commands
 docker-build:

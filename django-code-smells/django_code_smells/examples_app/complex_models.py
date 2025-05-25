@@ -37,6 +37,11 @@ class Employee(models.Model):
     hire_date = models.DateField()
     salary = models.DecimalField(max_digits=10, decimal_places=2)
 
+    # For populate_test_data script, using 'name' as a property
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
@@ -72,6 +77,10 @@ class Project(models.Model):
     employees = models.ManyToManyField(
         Employee, through="ProjectAssignment", related_name="projects"
     )
+    # For populate_test_data script, using 'members' to set employees
+    @property
+    def members(self):
+        return self.employees
 
     def __str__(self):
         return self.name
@@ -156,6 +165,24 @@ class Task(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(null=True, blank=True)
     estimated_hours = models.PositiveIntegerField(default=0)
+
+    # For populate_test_data script, using 'assignee'
+    @property
+    def assignee(self):
+        return self.assigned_to
+
+    @assignee.setter
+    def assignee(self, value):
+        self.assigned_to = value
+    
+    # For populate_test_data script, using 'name' for title
+    @property
+    def name(self):
+        return self.title
+    
+    @name.setter
+    def name(self, value):
+        self.title = value
 
     def __str__(self):
         return self.title

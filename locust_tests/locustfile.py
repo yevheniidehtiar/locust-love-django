@@ -102,24 +102,39 @@ class UserBehavior(TaskSet):
         # Custom metric reporting
         for idx, query in nplus1_queries.items():
             if "query_info" in query:
+                original_name = query["query_info"]
+                truncated_name = (original_name[:100] + '...') if len(original_name) > 100 else original_name
+                # Assuming response.request.path is available. If not, response.url might be an alternative.
+                # Based on typical Locust Response object, response.request.path might not be direct.
+                # response.request is the prepared request. Its 'path_url' or constructing from 'url' might be needed.
+                # For simplicity, let's assume response.url gives the full URL and we can extract path or use it.
+                # Using response.url as a safe bet for now.
+                request_path = response.url # More robust than response.request.path which might not exist
+                
+                event_name = f"{request_path} | N+1: {truncated_name}"
                 locust.events.request.fire(
-                    request_type="N+1 Query",
-                    name=query["query_info"],
+                    request_type="PerfViolation", # Consolidate event type
+                    name=event_name,
                     response_time=response.elapsed.total_seconds() * 1000,
-                    response_length=0,
+                    response_length=0, # Not a real response length for the violation itself
                     exception=None,
-                    context={},
+                    context={"type": "N+1", "original_query_info": original_name, "stack_trace": query.get("stack", "N/A")}, # Add context
                 )
 
         for idx, query in slow_queries.items():
             if "query_info" in query:
+                original_name = query["query_info"]
+                truncated_name = (original_name[:100] + '...') if len(original_name) > 100 else original_name
+                request_path = response.url # Using response.url for consistency
+                
+                event_name = f"{request_path} | Slow: {truncated_name}"
                 locust.events.request.fire(
-                    request_type="Slow Query",
-                    name=query["query_info"],
-                    response_time=response.elapsed.total_seconds() * 1000,
+                    request_type="PerfViolation", # Consolidate event type
+                    name=event_name,
+                    response_time=response.elapsed.total_seconds() * 1000, # Could also be query duration if available
                     response_length=0,
                     exception=None,
-                    context={},
+                    context={"type": "Slow", "original_query_info": original_name, "stack_trace": query.get("stack", "N/A")}, # Add context
                 )
 
 

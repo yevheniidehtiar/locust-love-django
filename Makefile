@@ -1,6 +1,6 @@
 # Makefile for locust-love-django project
 
-.PHONY: help setup install dev-setup test test-coverage run-django run-django-custom shell makemigrations migrate collectstatic createsuperuser run-locust docker-build docker-up docker-down docker-restart docker-logs docker-exec docker-clean lint clean
+.PHONY: help setup install dev-setup test test-coverage run-django run-django-custom shell makemigrations migrate collectstatic createsuperuser run-locust docker-build docker-up docker-down docker-restart docker-logs docker-exec docker-clean docker-build-prod docker-up-prod docker-down-prod docker-restart-prod docker-logs-prod docker-exec-prod docker-clean-prod populate-data-ci populate-data-ci-prod locust-ci-run locust-ci-run-prod lint clean
 
 # Default target
 help:
@@ -19,13 +19,24 @@ help:
 	@echo "  make collectstatic  - Collect static files"
 	@echo "  make createsuperuser - Create Django superuser"
 	@echo "  make run-locust     - Run Locust load testing"
-	@echo "  make docker-build   - Build Docker images"
-	@echo "  make docker-up      - Start Docker containers"
-	@echo "  make docker-down    - Stop Docker containers"
-	@echo "  make docker-restart - Restart Docker containers"
-	@echo "  make docker-logs    - View Docker logs"
-	@echo "  make docker-exec    - Execute command in Docker container"
-	@echo "  make docker-clean   - Clean up Docker resources"
+	@echo "  make docker-build   - Build Docker images (with mount volumes)"
+	@echo "  make docker-up      - Start Docker containers (with mount volumes)"
+	@echo "  make docker-down    - Stop Docker containers (with mount volumes)"
+	@echo "  make docker-restart - Restart Docker containers (with mount volumes)"
+	@echo "  make docker-logs    - View Docker logs (with mount volumes)"
+	@echo "  make docker-exec    - Execute command in Docker container (with mount volumes)"
+	@echo "  make docker-clean   - Clean up Docker resources (with mount volumes)"
+	@echo "  make docker-build-prod   - Build Docker images (production mode)"
+	@echo "  make docker-up-prod      - Start Docker containers (production mode)"
+	@echo "  make docker-down-prod    - Stop Docker containers (production mode)"
+	@echo "  make docker-restart-prod - Restart Docker containers (production mode)"
+	@echo "  make docker-logs-prod    - View Docker logs (production mode)"
+	@echo "  make docker-exec-prod    - Execute command in Docker container (production mode)"
+	@echo "  make docker-clean-prod   - Clean up Docker resources (production mode)"
+	@echo "  make populate-data-ci     - Populate database with test data"
+	@echo "  make populate-data-ci-prod - Populate database with test data (production mode)"
+	@echo "  make locust-ci-run        - Run Locust CI tests"
+	@echo "  make locust-ci-run-prod   - Run Locust CI tests (production mode)"
 	@echo "  make lint           - Run linting checks"
 	@echo "  make clean          - Clean up temporary files"
 
@@ -125,43 +136,86 @@ run-locust:
 
 populate-data-ci:
 	@echo "Populating database with test data..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec django python manage.py populate_test_data
+
+populate-data-ci-prod:
+	@echo "Populating database with test data (production mode)..."
 	docker compose exec django python manage.py populate_test_data
 
 locust-ci-run:
 	@echo "Running Locust CI tests..."
 	$(MAKE) populate-data-ci
-	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --exit-code-on-error 1 --html /locust_reports/locust_report.html
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust locust --host=http://0.0.0.0:8000 --headless -u 10 -r 1 -t 30s --json --exit-code-on-error 1
 
-# Docker commands
+
+locust-ci-run-prod:
+	@echo "Running Locust CI tests (production mode)..."
+	$(MAKE) populate-data-ci-prod
+	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --json --exit-code-on-error 1
+
+# Docker commands (default - with mount volumes for development)
 docker-build:
-	@echo "Building Docker images..."
-	docker compose build
+	@echo "Building Docker images (with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml build
 
 docker-up:
-	@echo "Starting Docker containers..."
-	docker compose up -d
+	@echo "Starting Docker containers (with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml up -d
 
 docker-down:
-	@echo "Stopping Docker containers..."
-	docker compose down
+	@echo "Stopping Docker containers (with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml down
 
 docker-restart:
-	@echo "Restarting Docker containers..."
-	docker compose restart
+	@echo "Restarting Docker containers (with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml restart
 
 docker-logs:
-	@echo "Viewing Docker logs..."
-	docker compose logs -f
+	@echo "Viewing Docker logs (with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml logs -f
 
 docker-exec:
-	@echo "Executing command in Docker container..."
+	@echo "Executing command in Docker container (with mount volumes)..."
 	@echo "Usage: make docker-exec SERVICE=<service> CMD=<command>"
+	@if [ -z "$(SERVICE)" ]; then echo "Error: SERVICE is required"; exit 1; fi
+	@if [ -z "$(CMD)" ]; then echo "Error: CMD is required"; exit 1; fi
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec $(SERVICE) $(CMD)
+
+docker-clean:
+	@echo "Cleaning up Docker resources (with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml down --volumes --remove-orphans
+	docker system prune -f
+
+# Docker commands (production mode - without mount volumes)
+docker-build-prod:
+	@echo "Building Docker images (production mode)..."
+	docker compose build
+
+docker-up-prod:
+	@echo "Starting Docker containers (production mode)..."
+	docker compose up -d
+
+docker-down-prod:
+	@echo "Stopping Docker containers (production mode)..."
+	docker compose down
+
+docker-restart-prod:
+	@echo "Restarting Docker containers (production mode)..."
+	docker compose restart
+
+docker-logs-prod:
+	@echo "Viewing Docker logs (production mode)..."
+	docker compose logs -f
+
+docker-exec-prod:
+	@echo "Executing command in Docker container (production mode)..."
+	@echo "Usage: make docker-exec-prod SERVICE=<service> CMD=<command>"
 	@if [ -z "$(SERVICE)" ]; then echo "Error: SERVICE is required"; exit 1; fi
 	@if [ -z "$(CMD)" ]; then echo "Error: CMD is required"; exit 1; fi
 	docker compose exec $(SERVICE) $(CMD)
 
-docker-clean:
-	@echo "Cleaning up Docker resources..."
+docker-clean-prod:
+	@echo "Cleaning up Docker resources (production mode)..."
 	docker compose down --volumes --remove-orphans
 	docker system prune -f
 

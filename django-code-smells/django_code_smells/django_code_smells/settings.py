@@ -58,6 +58,10 @@ MIDDLEWARE = [
 ]
 
 # Debug toolbar settings
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": "django_code_smells.utils.show_debug_toolbar"
+}
+
 INTERNAL_IPS = [
     "127.0.0.1",
 ]

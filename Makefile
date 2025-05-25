@@ -92,6 +92,32 @@ createsuperuser:
 	@echo "Creating superuser..."
 	cd django-code-smells/django_code_smells && python manage.py createsuperuser
 
+# Create test data
+create-test-data-10k:
+	@echo "Generating 10K test data..."
+	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=10000 --books-per-author=10" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=10000" "generate_complex_data --departments=100 --employees-per-dept=100"
+
+create-test-data-100k:
+	@echo "Generating 100K test data..."
+	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=100000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=100000" "generate_complex_data --departments=100 --employees-per-dept=1000"
+
+create-test-data-1m:
+	@echo "Generating 1M test data..."
+	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=1000000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=1000000" "generate_complex_data --departments=100 --employees-per-dept=10000"
+
+create-test-data-10m:
+	@echo "Generating 10M test data..."
+	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=10000000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=10000000" "generate_complex_data --departments=1000 --employees-per-dept=100000"
+
+# Run custom async data generation
+# Usage: make generate-data-async TASKS="task1 task2 ..."
+# Example: make generate-data-async TASKS="\"generate_simple_data --authors=1000\" \"generate_complex_data --departments=50\""
+generate-data-async:
+	@echo "Running async data generation with custom tasks..."
+	@if [ -z "$(TASKS)" ]; then echo "Error: TASKS is required"; exit 1; fi
+	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks $(TASKS)
+
+
 # Run Locust load testing
 run-locust:
 	@echo "Running Locust load testing..."

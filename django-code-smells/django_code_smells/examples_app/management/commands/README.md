@@ -112,3 +112,34 @@ python manage.py generate_complex_data --departments=100 --employees-per-dept=50
 ```
 
 4. Run Locust tests again to measure performance with larger dataset.
+
+### 3. Generate Data Asynchronously
+
+This command allows you to run multiple data generation tasks concurrently using Django 5's async capabilities.
+
+```bash
+python manage.py generate_data_async [options]
+```
+
+#### Options:
+
+- `--tasks`: List of data generation tasks to run asynchronously (space-separated)
+- `--simple-data`: Run generate_simple_data command with default parameters
+- `--complex-data`: Run generate_complex_data command with default parameters
+
+#### Examples:
+
+Run both simple and complex data generation with default parameters:
+```bash
+python manage.py generate_data_async --simple-data --complex-data
+```
+
+Run specific data generation tasks with custom parameters:
+```bash
+python manage.py generate_data_async --tasks "generate_simple_data --authors=1000000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=1000000" "generate_complex_data"
+```
+
+Generate a large dataset with multiple concurrent tasks:
+```bash
+python manage.py generate_data_async --tasks "generate_simple_data --authors=10000 --books-per-author=20 --skip-products --skip-indexed-products" "generate_complex_data --departments=100 --employees-per-dept=500 --skip-projects --skip-assignments --skip-documents --skip-tasks"
+```

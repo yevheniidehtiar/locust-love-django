@@ -170,7 +170,7 @@ class Command(BaseCommand):
             )
         )
 
-    def generate_employees(self, employees_per_dept, batch_size):
+    def  generate_employees(self, employees_per_dept, batch_size):
         """Generate employees for each department"""
         departments = Department.objects.all()
         dept_count = departments.count()

@@ -12,6 +12,7 @@ services:
     environment:
       - DEBUG=True
       - PYTHONUNBUFFERED=1
+      - SQL_DBPATH=/var/lib/django/db.sqlite3
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
       interval: 10s

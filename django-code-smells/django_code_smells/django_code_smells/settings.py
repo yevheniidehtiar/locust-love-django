@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -87,7 +88,7 @@ WSGI_APPLICATION = "django_code_smells.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": Path(os.environ.get("SQL_DBPATH", "db.sqlite3"))
+        "NAME": Path(os.environ.get("SQL_DBPATH", "db.sqlite3")),
     }
 }
 

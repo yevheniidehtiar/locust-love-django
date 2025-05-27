@@ -134,12 +134,18 @@ class Command(BaseCommand):
         # Get the current max department code to ensure uniqueness
         max_dept_code = 0
         try:
-            latest_dept = Department.objects.filter(code__startswith="DEPT-").order_by('-code').first()
+            latest_dept = (
+                Department.objects.filter(code__startswith="DEPT-")
+                .order_by("-code")
+                .first()
+            )
             if latest_dept:
                 # Extract the numeric part from the code (e.g., "DEPT-042" -> 42)
-                max_dept_code = int(latest_dept.code.split('-')[1])
+                max_dept_code = int(latest_dept.code.split("-")[1])
         except Exception as e:
-            self.stdout.write(self.style.WARNING(f"Could not determine max department code: {e}"))
+            self.stdout.write(
+                self.style.WARNING(f"Could not determine max department code: {e}")
+            )
 
         departments_created = 0
 
@@ -170,7 +176,7 @@ class Command(BaseCommand):
             )
         )
 
-    def  generate_employees(self, employees_per_dept, batch_size):
+    def generate_employees(self, employees_per_dept, batch_size):
         """Generate employees for each department"""
         departments = Department.objects.all()
         dept_count = departments.count()
@@ -192,11 +198,13 @@ class Command(BaseCommand):
         # Get the current max employee ID to ensure uniqueness in usernames
         max_employee_id = 0
         try:
-            latest_employee = Employee.objects.order_by('-id').first()
+            latest_employee = Employee.objects.order_by("-id").first()
             if latest_employee:
                 max_employee_id = latest_employee.id
         except Exception as e:
-            self.stdout.write(self.style.WARNING(f"Could not determine max employee ID: {e}"))
+            self.stdout.write(
+                self.style.WARNING(f"Could not determine max employee ID: {e}")
+            )
 
         batches = total_employees // batch_size + (
             1 if total_employees % batch_size else 0
@@ -307,12 +315,18 @@ class Command(BaseCommand):
         # Get the current max project code to ensure uniqueness
         max_proj_code = 0
         try:
-            latest_proj = Project.objects.filter(code__startswith="PROJ-").order_by('-code').first()
+            latest_proj = (
+                Project.objects.filter(code__startswith="PROJ-")
+                .order_by("-code")
+                .first()
+            )
             if latest_proj:
                 # Extract the numeric part from the code (e.g., "PROJ-0042" -> 42)
-                max_proj_code = int(latest_proj.code.split('-')[1])
+                max_proj_code = int(latest_proj.code.split("-")[1])
         except Exception as e:
-            self.stdout.write(self.style.WARNING(f"Could not determine max project code: {e}"))
+            self.stdout.write(
+                self.style.WARNING(f"Could not determine max project code: {e}")
+            )
 
         batches = total_projects // batch_size + (
             1 if total_projects % batch_size else 0
@@ -336,7 +350,9 @@ class Command(BaseCommand):
                     department = departments[dept_index]
                     # Manually increment the code to ensure uniqueness
                     max_proj_code += 1
-                    ProjectFactory.create(department=department, code=f"PROJ-{max_proj_code:04d}")
+                    ProjectFactory.create(
+                        department=department, code=f"PROJ-{max_proj_code:04d}"
+                    )
 
             projects_created += batch_count
             batch_elapsed = time.time() - batch_start

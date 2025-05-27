@@ -8,191 +8,466 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Author',
+            name="Author",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
             ],
         ),
         migrations.CreateModel(
-            name='Book',
+            name="Book",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('publication_year', models.IntegerField(null=True)),
-                ('publication_date', models.DateField(blank=True, null=True)),
-                ('isbn', models.CharField(blank=True, max_length=20, null=True)),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='books', to='examples_app.author')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("publication_year", models.IntegerField(null=True)),
+                ("publication_date", models.DateField(blank=True, null=True)),
+                ("isbn", models.CharField(blank=True, max_length=20, null=True)),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="books",
+                        to="examples_app.author",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Department',
+            name="Department",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True,
-                                           serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('code', models.CharField(max_length=10, unique=True)),
-                ('description', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("code", models.CharField(max_length=10, unique=True)),
+                ("description", models.TextField(blank=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Customer',
+            name="Customer",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True,
-                                           serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=150)),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('address', models.TextField(blank=True)),
-                ('registered_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=150)),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                ("address", models.TextField(blank=True)),
+                ("registered_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Employee',
+            name="Employee",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('first_name', models.CharField(max_length=50)),
-                ('last_name', models.CharField(max_length=50)),
-                ('username', models.CharField(max_length=50, unique=True)),
-                ('email', models.EmailField(max_length=254)),
-                ('hire_date', models.DateField()),
-                ('salary', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('department', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='employees', to='examples_app.department')),
-                ('manager', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='subordinates', to='examples_app.employee')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("first_name", models.CharField(max_length=50)),
+                ("last_name", models.CharField(max_length=50)),
+                ("username", models.CharField(max_length=50, unique=True)),
+                ("email", models.EmailField(max_length=254)),
+                ("hire_date", models.DateField()),
+                ("salary", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "department",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="employees",
+                        to="examples_app.department",
+                    ),
+                ),
+                (
+                    "manager",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="subordinates",
+                        to="examples_app.employee",
+                    ),
+                ),
             ],
         ),
         # ecommerce
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True,
-                                           serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('description', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                ("description", models.TextField(blank=True)),
             ],
             options={
-                'verbose_name_plural': 'Categories',
+                "verbose_name_plural": "Categories",
             },
         ),
         migrations.CreateModel(
-            name='Product',
+            name="Product",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True,
-                                           serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('sku', models.CharField(blank=True, max_length=50, null=True)),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('description', models.TextField(blank=True)),
-                ('stock_quantity', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('category', models.ForeignKey(blank=True, null=True,
-                                               on_delete=django.db.models.deletion.SET_NULL,
-                                               related_name='products',
-                                               to='examples_app.category')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                ("sku", models.CharField(blank=True, max_length=50, null=True)),
+                ("price", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("description", models.TextField(blank=True)),
+                ("stock_quantity", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="products",
+                        to="examples_app.category",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='IndexedProduct',
+            name="IndexedProduct",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('sku', models.CharField(db_index=True, max_length=50)),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('description', models.TextField(blank=True)),
-                ('stock_quantity', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='indexed_products', to='examples_app.category')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                ("sku", models.CharField(db_index=True, max_length=50)),
+                ("price", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("description", models.TextField(blank=True)),
+                ("stock_quantity", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="indexed_products",
+                        to="examples_app.category",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order_date', models.DateTimeField(default=django.utils.timezone.now)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('PROCESSING', 'Processing'), ('SHIPPED', 'Shipped'), ('DELIVERED', 'Delivered'), ('CANCELLED', 'Cancelled')], default='PENDING', max_length=20)),
-                ('total_amount', models.DecimalField(decimal_places=2, default=0.0, max_digits=10)),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to='examples_app.customer')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("order_date", models.DateTimeField(default=django.utils.timezone.now)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("PROCESSING", "Processing"),
+                            ("SHIPPED", "Shipped"),
+                            ("DELIVERED", "Delivered"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "total_amount",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=10),
+                ),
+                (
+                    "customer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="orders",
+                        to="examples_app.customer",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField(default=1)),
-                ('price_at_purchase', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='examples_app.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='order_items', to='examples_app.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.PositiveIntegerField(default=1)),
+                (
+                    "price_at_purchase",
+                    models.DecimalField(decimal_places=2, max_digits=10),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="examples_app.order",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="order_items",
+                        to="examples_app.product",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Project',
+            name="Project",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('code', models.CharField(max_length=20, unique=True)),
-                ('description', models.TextField()),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('budget', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('department', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='projects', to='examples_app.department')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("code", models.CharField(max_length=20, unique=True)),
+                ("description", models.TextField()),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField(blank=True, null=True)),
+                ("budget", models.DecimalField(decimal_places=2, max_digits=12)),
+                (
+                    "department",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="projects",
+                        to="examples_app.department",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Document',
+            name="Document",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('upload_date', models.DateTimeField(auto_now_add=True)),
-                ('file_type', models.CharField(max_length=20)),
-                ('content', models.BinaryField(blank=True, null=True)),
-                ('description', models.TextField(blank=True)),
-                ('uploaded_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='uploaded_documents', to='examples_app.employee')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='examples_app.project')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("upload_date", models.DateTimeField(auto_now_add=True)),
+                ("file_type", models.CharField(max_length=20)),
+                ("content", models.BinaryField(blank=True, null=True)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "uploaded_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="uploaded_documents",
+                        to="examples_app.employee",
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="documents",
+                        to="examples_app.project",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ProjectAssignment',
+            name="ProjectAssignment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.CharField(max_length=50)),
-                ('assignment_date', models.DateField()),
-                ('hours_allocated', models.PositiveIntegerField(default=0)),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='examples_app.employee')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='examples_app.project')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("role", models.CharField(max_length=50)),
+                ("assignment_date", models.DateField()),
+                ("hours_allocated", models.PositiveIntegerField(default=0)),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="examples_app.employee",
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="examples_app.project",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('project', 'employee', 'role')},
+                "unique_together": {("project", "employee", "role")},
             },
         ),
         migrations.AddField(
-            model_name='project',
-            name='employees',
-            field=models.ManyToManyField(related_name='projects', through='examples_app.ProjectAssignment', to='examples_app.employee'),
+            model_name="project",
+            name="employees",
+            field=models.ManyToManyField(
+                related_name="projects",
+                through="examples_app.ProjectAssignment",
+                to="examples_app.employee",
+            ),
         ),
         migrations.CreateModel(
-            name='Task',
+            name="Task",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('description', models.TextField()),
-                ('priority', models.CharField(choices=[('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High'), ('CRITICAL', 'Critical')], default='MEDIUM', max_length=10)),
-                ('status', models.CharField(choices=[('TODO', 'To Do'), ('IN_PROGRESS', 'In Progress'), ('REVIEW', 'Review'), ('DONE', 'Done')], default='TODO', max_length=15)),
-                ('created_date', models.DateTimeField(auto_now_add=True)),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('estimated_hours', models.PositiveIntegerField(default=0)),
-                ('assigned_to', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assigned_tasks', to='examples_app.employee')),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_tasks', to='examples_app.employee')),
-                ('parent_task', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='subtasks', to='examples_app.task')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='examples_app.project')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("description", models.TextField()),
+                (
+                    "priority",
+                    models.CharField(
+                        choices=[
+                            ("LOW", "Low"),
+                            ("MEDIUM", "Medium"),
+                            ("HIGH", "High"),
+                            ("CRITICAL", "Critical"),
+                        ],
+                        default="MEDIUM",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("TODO", "To Do"),
+                            ("IN_PROGRESS", "In Progress"),
+                            ("REVIEW", "Review"),
+                            ("DONE", "Done"),
+                        ],
+                        default="TODO",
+                        max_length=15,
+                    ),
+                ),
+                ("created_date", models.DateTimeField(auto_now_add=True)),
+                ("due_date", models.DateField(blank=True, null=True)),
+                ("estimated_hours", models.PositiveIntegerField(default=0)),
+                (
+                    "assigned_to",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="assigned_tasks",
+                        to="examples_app.employee",
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="created_tasks",
+                        to="examples_app.employee",
+                    ),
+                ),
+                (
+                    "parent_task",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="subtasks",
+                        to="examples_app.task",
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tasks",
+                        to="examples_app.project",
+                    ),
+                ),
             ],
         ),
     ]

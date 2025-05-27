@@ -74,76 +74,47 @@ class UserBehavior(TaskSet):
         slow_queries = {}
 
         # Parse Server-timing header for SQL metrics
-        if 'Server-timing' in headers:
-            server_timing = headers['Server-timing']
-            timing_metrics = server_timing.split(', ')
+        if "Server-Timing" in headers:
+            server_timing = headers["Server-Timing"]
+            timing_metrics = server_timing.split(", ")
 
             for metric in timing_metrics:
-                parts = metric.split(';')
+                parts = metric.split(";")
                 metric_name = parts[0]
                 duration = None
                 description = None
 
                 for part in parts[1:]:
-                    if part.startswith('dur='):
+                    if part.startswith("dur="):
                         duration = part[4:]
-                    elif part.startswith('desc='):
+                    elif part.startswith("desc="):
                         description = part[5:].strip('"')
 
-                # Check for specific metrics mentioned in the issue
-                if 'DJ_TB_SQL_NPLUS1' in metric_name:
-                    query_index = metric_name.split('_')[-1]
-                    if description:
-                        nplus1_queries[query_index] = {"query_info": description}
-                        if duration:
-                            nplus1_queries[query_index]["duration"] = duration
-
-                elif 'DJ_TB_SQL_SLOW' in metric_name:
-                    query_index = metric_name.split('_')[-1]
-                    if description:
-                        slow_queries[query_index] = {"query_info": description}
-                        if duration:
-                            slow_queries[query_index]["duration"] = duration
-
                 # Check for SQLPanel metrics that might indicate N+1 or slow queries
-                elif metric_name == 'SQLPanel_sql_time':
-                    if description and 'queries' in description:
+                if metric_name == "SQLPanel_sql_time":
+                    if description and "queries" in description:
                         # Extract query count from description (e.g., "SQL 1 queries")
                         try:
                             query_count = int(description.split()[1])
                             # If there are many queries, it might indicate an N+1 issue
                             if query_count > 10:  # Threshold for potential N+1 issue
-                                nplus1_queries['sql_panel'] = {
+                                nplus1_queries["sql_panel"] = {
                                     "query_info": f"Potential N+1 issue: {description}",
-                                    "duration": duration
+                                    "duration": duration,
                                 }
                             # If the duration is high, it might indicate a slow query
-                            if duration and float(duration) > 1.0:  # Threshold for slow query (1 second)
-                                slow_queries['sql_panel'] = {
+                            if duration and float(duration) > 0.1:  # Threshold
+                                # for slow query (1 second)
+                                slow_queries["sql_panel"] = {
                                     "query_info": f"Potential slow query: {description}",
-                                    "duration": duration
+                                    "duration": duration,
                                 }
                         except (IndexError, ValueError):
                             # Handle parsing errors gracefully
                             pass
-
-        # Parse traditional N+1 query headers
-        for key, value in headers.items():
-            if key.startswith("DJ_TB_SQL_NPLUS1"):
-                query_index = key.split("_")[-1]
-                if "STACK" in query_index:
-                    nplus1_queries.setdefault(query_index[:-6], {})["stack"] = value
-                else:
-                    nplus1_queries[query_index] = {"query_info": value}
-
-            # Parse Slow query headers
-            if key.startswith("DJ_TB_SQL_SLOW"):
-                query_index = key.split("_")[-1]
-                if "STACK" in query_index:
-                    slow_queries.setdefault(query_index[:-6], {})["stack"] = value
-                else:
-                    slow_queries[query_index] = {"query_info": value}
-
+        else:
+            logger.debug("Server-timing metrics not found, skipping")
+            logger.debug(str(headers.keys()))
         # Log stack traces
         for idx, query in nplus1_queries.items():
             if "stack" in query:
@@ -152,44 +123,6 @@ class UserBehavior(TaskSet):
         for idx, query in slow_queries.items():
             if "stack" in query:
                 logger.info(f"Slow Query Stack Trace {idx}: {query['stack']}")
-
-        # Custom metric reporting
-        for idx, query in nplus1_queries.items():
-            if "query_info" in query:
-                original_name = query["query_info"]
-                truncated_name = (original_name[:100] + '...') if len(original_name) > 100 else original_name
-                # Assuming response.request.path is available. If not, response.url might be an alternative.
-                # Based on typical Locust Response object, response.request.path might not be direct.
-                # response.request is the prepared request. Its 'path_url' or constructing from 'url' might be needed.
-                # For simplicity, let's assume response.url gives the full URL and we can extract path or use it.
-                # Using response.url as a safe bet for now.
-                request_path = response.url # More robust than response.request.path which might not exist
-
-                event_name = f"{request_path} | N+1: {truncated_name}"
-                locust.events.request.fire(
-                    request_type="PerfViolation", # Consolidate event type
-                    name=event_name,
-                    response_time=response.elapsed.total_seconds() * 1000,
-                    response_length=0, # Not a real response length for the violation itself
-                    exception=None,
-                    context={"type": "N+1", "original_query_info": original_name, "stack_trace": query.get("stack", "N/A")}, # Add context
-                )
-
-        for idx, query in slow_queries.items():
-            if "query_info" in query:
-                original_name = query["query_info"]
-                truncated_name = (original_name[:100] + '...') if len(original_name) > 100 else original_name
-                request_path = response.url # Using response.url for consistency
-
-                event_name = f"{request_path} | Slow: {truncated_name}"
-                locust.events.request.fire(
-                    request_type="PerfViolation", # Consolidate event type
-                    name=event_name,
-                    response_time=response.elapsed.total_seconds() * 1000, # Could also be query duration if available
-                    response_length=0,
-                    exception=None,
-                    context={"type": "Slow", "original_query_info": original_name, "stack_trace": query.get("stack", "N/A")}, # Add context
-                )
 
 
 class WebsiteUser(HttpUser):

@@ -1,5 +1,5 @@
 [project]
-name = "locust-live-django"
+name = "locust-love-django"
 version = "0.1.0"
 description = "Suite of Django ORM anti-patterns and automated test to detect them"
 authors = [

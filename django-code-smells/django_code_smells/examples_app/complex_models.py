@@ -22,7 +22,7 @@ class Employee(models.Model):
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, unique=True)
+    username = models.CharField(max_length=100, unique=True)
     email = models.EmailField()
     department = models.ForeignKey(
         Department, related_name="employees", on_delete=models.CASCADE
@@ -77,6 +77,7 @@ class Project(models.Model):
     employees = models.ManyToManyField(
         Employee, through="ProjectAssignment", related_name="projects"
     )
+
     # For populate_test_data script, using 'members' to set employees
     @property
     def members(self):
@@ -174,12 +175,12 @@ class Task(models.Model):
     @assignee.setter
     def assignee(self, value):
         self.assigned_to = value
-    
+
     # For populate_test_data script, using 'name' for title
     @property
     def name(self):
         return self.title
-    
+
     @name.setter
     def name(self, value):
         self.title = value

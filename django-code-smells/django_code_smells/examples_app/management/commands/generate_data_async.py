@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 import time
@@ -50,10 +49,13 @@ class Command(BaseCommand):
 
         # Check if we're using SQLite
         from django.conf import settings
-        is_sqlite = 'sqlite' in settings.DATABASES['default']['ENGINE']
+
+        is_sqlite = "sqlite" in settings.DATABASES["default"]["ENGINE"]
 
         if is_sqlite:
-            self.stdout.write(f"Running {len(tasks)} data generation tasks sequentially (SQLite detected)...")
+            self.stdout.write(
+                f"Running {len(tasks)} data generation tasks sequentially (SQLite detected)..."
+            )
 
             # Run tasks sequentially to avoid database locking issues with SQLite
             for task in tasks:
@@ -65,7 +67,9 @@ class Command(BaseCommand):
                 # Run each task one at a time
                 await self.run_command(command_name, command_args)
         else:
-            self.stdout.write(f"Running {len(tasks)} data generation tasks asynchronously...")
+            self.stdout.write(
+                f"Running {len(tasks)} data generation tasks asynchronously..."
+            )
 
             # Create a list to hold all the task coroutines
             coroutines = []
@@ -98,30 +102,27 @@ class Command(BaseCommand):
         # Convert command arguments to the format expected by call_command
         kwargs = {}
         for arg in command_args:
-            if arg.startswith('--'):
-                parts = arg[2:].split('=', 1)
+            if arg.startswith("--"):
+                parts = arg[2:].split("=", 1)
                 if len(parts) == 2:
                     key, value = parts
                     # Convert hyphens to underscores in the key
-                    key = key.replace('-', '_')
+                    key = key.replace("-", "_")
                     # Convert value to appropriate type
                     if value.isdigit():
                         kwargs[key] = int(value)
-                    elif value.lower() in ('true', 'false'):
-                        kwargs[key] = value.lower() == 'true'
+                    elif value.lower() in ("true", "false"):
+                        kwargs[key] = value.lower() == "true"
                     else:
                         kwargs[key] = value
                 else:
                     # Handle flags without values
-                    key = parts[0].replace('-', '_')
+                    key = parts[0].replace("-", "_")
                     kwargs[key] = True
 
         # Run the command in a separate thread to avoid blocking the event loop
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None, 
-            lambda: call_command(command_name, **kwargs)
-        )
+        await loop.run_in_executor(None, lambda: call_command(command_name, **kwargs))
 
         task_elapsed_time = time.time() - task_start_time
         self.stdout.write(

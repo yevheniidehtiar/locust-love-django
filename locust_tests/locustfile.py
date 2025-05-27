@@ -73,7 +73,61 @@ class UserBehavior(TaskSet):
         nplus1_queries = {}
         slow_queries = {}
 
-        # Parse N+1 query headers
+        # Parse Server-timing header for SQL metrics
+        if 'Server-timing' in headers:
+            server_timing = headers['Server-timing']
+            timing_metrics = server_timing.split(', ')
+
+            for metric in timing_metrics:
+                parts = metric.split(';')
+                metric_name = parts[0]
+                duration = None
+                description = None
+
+                for part in parts[1:]:
+                    if part.startswith('dur='):
+                        duration = part[4:]
+                    elif part.startswith('desc='):
+                        description = part[5:].strip('"')
+
+                # Check for specific metrics mentioned in the issue
+                if 'DJ_TB_SQL_NPLUS1' in metric_name:
+                    query_index = metric_name.split('_')[-1]
+                    if description:
+                        nplus1_queries[query_index] = {"query_info": description}
+                        if duration:
+                            nplus1_queries[query_index]["duration"] = duration
+
+                elif 'DJ_TB_SQL_SLOW' in metric_name:
+                    query_index = metric_name.split('_')[-1]
+                    if description:
+                        slow_queries[query_index] = {"query_info": description}
+                        if duration:
+                            slow_queries[query_index]["duration"] = duration
+
+                # Check for SQLPanel metrics that might indicate N+1 or slow queries
+                elif metric_name == 'SQLPanel_sql_time':
+                    if description and 'queries' in description:
+                        # Extract query count from description (e.g., "SQL 1 queries")
+                        try:
+                            query_count = int(description.split()[1])
+                            # If there are many queries, it might indicate an N+1 issue
+                            if query_count > 10:  # Threshold for potential N+1 issue
+                                nplus1_queries['sql_panel'] = {
+                                    "query_info": f"Potential N+1 issue: {description}",
+                                    "duration": duration
+                                }
+                            # If the duration is high, it might indicate a slow query
+                            if duration and float(duration) > 1.0:  # Threshold for slow query (1 second)
+                                slow_queries['sql_panel'] = {
+                                    "query_info": f"Potential slow query: {description}",
+                                    "duration": duration
+                                }
+                        except (IndexError, ValueError):
+                            # Handle parsing errors gracefully
+                            pass
+
+        # Parse traditional N+1 query headers
         for key, value in headers.items():
             if key.startswith("DJ_TB_SQL_NPLUS1"):
                 query_index = key.split("_")[-1]
@@ -110,7 +164,7 @@ class UserBehavior(TaskSet):
                 # For simplicity, let's assume response.url gives the full URL and we can extract path or use it.
                 # Using response.url as a safe bet for now.
                 request_path = response.url # More robust than response.request.path which might not exist
-                
+
                 event_name = f"{request_path} | N+1: {truncated_name}"
                 locust.events.request.fire(
                     request_type="PerfViolation", # Consolidate event type
@@ -126,7 +180,7 @@ class UserBehavior(TaskSet):
                 original_name = query["query_info"]
                 truncated_name = (original_name[:100] + '...') if len(original_name) > 100 else original_name
                 request_path = response.url # Using response.url for consistency
-                
+
                 event_name = f"{request_path} | Slow: {truncated_name}"
                 locust.events.request.fire(
                     request_type="PerfViolation", # Consolidate event type

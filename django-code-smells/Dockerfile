@@ -32,10 +32,7 @@ RUN echo "from django.contrib.auth.models import User; User.objects.create_super
 # Create sample data
 RUN echo "from examples_app.models import Author, Book; \
     author1 = Author.objects.create(name='J.R.R. Tolkien'); \
-    author2 = Author.objects.create(name='George R.R. Martin'); \
-    Book.objects.create(title='The Hobbit', author=author1, publication_year=1937); \
-    Book.objects.create(title='The Lord of the Rings', author=author1, publication_year=1954); \
-    Book.objects.create(title='A Game of Thrones', author=author2, publication_year=1996)" | python manage.py shell
+    author2 = Author.objects.create(name='George R.R. Martin')" | python manage.py shell
 
 EXPOSE 8000
 

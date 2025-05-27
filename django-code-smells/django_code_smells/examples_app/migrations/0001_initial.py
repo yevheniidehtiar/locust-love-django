@@ -23,38 +23,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Department',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('code', models.CharField(max_length=10, unique=True)),
-                ('description', models.TextField(blank=True)),
-            ],
-            options={
-                'verbose_name_plural': 'Categories',
-            },
-        ),
-        migrations.CreateModel(
-            name='Customer',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=150)),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('address', models.TextField(blank=True)),
-                ('registered_at', models.DateTimeField(auto_now_add=True)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Product',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('sku', models.CharField(max_length=50)),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('description', models.TextField(blank=True)),
-            ],
-        ),
-        migrations.CreateModel(
             name='Book',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -63,6 +31,27 @@ class Migration(migrations.Migration):
                 ('publication_date', models.DateField(blank=True, null=True)),
                 ('isbn', models.CharField(blank=True, max_length=20, null=True)),
                 ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='books', to='examples_app.author')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Department',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100)),
+                ('code', models.CharField(max_length=10, unique=True)),
+                ('description', models.TextField(blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Customer',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=150)),
+                ('email', models.EmailField(max_length=254, unique=True)),
+                ('address', models.TextField(blank=True)),
+                ('registered_at', models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
@@ -77,6 +66,37 @@ class Migration(migrations.Migration):
                 ('salary', models.DecimalField(decimal_places=2, max_digits=10)),
                 ('department', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='employees', to='examples_app.department')),
                 ('manager', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='subordinates', to='examples_app.employee')),
+            ],
+        ),
+        # ecommerce
+        migrations.CreateModel(
+            name='Category',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100, unique=True)),
+                ('description', models.TextField(blank=True)),
+            ],
+            options={
+                'verbose_name_plural': 'Categories',
+            },
+        ),
+        migrations.CreateModel(
+            name='Product',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200)),
+                ('sku', models.CharField(blank=True, max_length=50, null=True)),
+                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('description', models.TextField(blank=True)),
+                ('stock_quantity', models.PositiveIntegerField(default=0)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('category', models.ForeignKey(blank=True, null=True,
+                                               on_delete=django.db.models.deletion.SET_NULL,
+                                               related_name='products',
+                                               to='examples_app.category')),
             ],
         ),
         migrations.CreateModel(
@@ -101,20 +121,6 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(choices=[('PENDING', 'Pending'), ('PROCESSING', 'Processing'), ('SHIPPED', 'Shipped'), ('DELIVERED', 'Delivered'), ('CANCELLED', 'Cancelled')], default='PENDING', max_length=20)),
                 ('total_amount', models.DecimalField(decimal_places=2, default=0.0, max_digits=10)),
                 ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to='examples_app.customer')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Product',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('sku', models.CharField(blank=True, max_length=50, null=True)),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('description', models.TextField(blank=True)),
-                ('stock_quantity', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='products', to='examples_app.category')),
             ],
         ),
         migrations.CreateModel(

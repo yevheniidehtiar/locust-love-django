@@ -82,5 +82,10 @@ test_deploy_master:
     # For now, let's assume a 'make locust-ci-run' target will be created.
     - make locust-ci-run 
     - make docker-down # Clean up services
+  artifacts:
+    when: always
+    paths:
+      - locust_reports/locust_report.html
+    expire_in: 1 week
   rules:
     - if: $CI_COMMIT_BRANCH == "master"

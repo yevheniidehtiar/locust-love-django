@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # Match the version in Dockerfiles if possible
+          python-version: '3.13' # Match the version in Dockerfiles if possible
 
       - name: Cache pip dependencies
         uses: actions/cache@v4
@@ -115,6 +115,13 @@ jobs:
 
       - name: Run Locust tests
         run: make locust-ci-run
+
+      - name: Upload Locust Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-report
+          path: locust_reports/locust_report.html
+          if-no-files-found: error # Optional: fail if the report is not found
 
       - name: Stop services
         run: make docker-down

@@ -67,8 +67,9 @@ class EmployeeFactory(factory.django.DjangoModelFactory):
     email = factory.LazyAttribute(
         lambda o: f"{o.first_name.lower()}.{o.last_name.lower()}@example.com"
     )
-    username = factory.LazyAttribute(
-        lambda o: f"{o.first_name.lower()}.{o.last_name.lower()}.{o.hire_date}"
+    username = factory.Sequence(
+        lambda
+            n: f"{factory.Faker('first_name').generate().lower()}.{factory.Faker('last_name').generate().lower()}.{n}"
     )
     department = factory.SubFactory(DepartmentFactory)
     # manager will be set after creation

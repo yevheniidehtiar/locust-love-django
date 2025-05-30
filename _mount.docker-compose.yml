@@ -5,7 +5,12 @@ services:
     volumes:
       - ./django-code-smells/django_code_smells:/app/
       - ./http_header_profiling_middleware:/app/http_header_profiling_middleware
-
+      - sqlite-data:/var/lib/django
   locust:
     volumes:
       - ./locust_tests/:/app/
+      - locust-reports:/locust_reports
+
+volumes:
+  sqlite-data:
+  locust-reports:

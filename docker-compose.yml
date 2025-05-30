@@ -7,8 +7,6 @@ services:
       dockerfile: django-code-smells/Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./http_header_profiling_middleware:/app/http_header_profiling_middleware
     environment:
       - DEBUG=True
       - PYTHONUNBUFFERED=1

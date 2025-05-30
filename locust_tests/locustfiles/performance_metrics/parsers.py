@@ -5,7 +5,7 @@ def parse_django_response(response) -> PerformanceMetrics:
     if not response:
         return PerformanceMetrics()
 
-    headers = getattr(response, 'headers', None)
+    headers = getattr(response, "headers", None)
     if not headers:
         return PerformanceMetrics()
 

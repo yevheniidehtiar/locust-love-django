@@ -7,8 +7,7 @@ services:
   locust:
     volumes:
       - ./locust_tests/:/app/
-      - locust-reports:/locust_reports
+      - ./locust_reports:/locust_reports
 
 volumes:
   sqlite-data:
-  locust-reports:

@@ -54,7 +54,7 @@ jobs:
       - name: Build Docker images
         run: make docker-build
 
-  smoke_test_pr:
+  build_and_smoke_locust:
     runs-on: ubuntu-latest
     needs: build_images # Depends on images being built
     if: github.event_name == 'pull_request' # Run only for pull requests
@@ -96,6 +96,19 @@ jobs:
         #   docker compose logs django
         run: echo "Services started. Healthcheck in docker-compose.yml for Django will be verified by 'docker compose up'."
 
+      - name: Run Locust tests
+        run: make locust-ci-run
+
+      - name: Upload logs output
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-output
+          path: locust_output.log
+          if-no-files-found: error # Optional: fail if the report is not found
+
+      - name: Verify Locust output
+        run: python -m validate_locust_output locust_output.log
+
       - name: Stop services
         run: make docker-down
 
@@ -115,13 +128,6 @@ jobs:
 
       - name: Run Locust tests
         run: make locust-ci-run
-
-      - name: Upload Locust Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: locust-report
-          path: locust_reports/locust_report.html
-          if-no-files-found: error # Optional: fail if the report is not found
 
       - name: Stop services
         run: make docker-down

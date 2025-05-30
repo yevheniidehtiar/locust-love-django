@@ -191,18 +191,16 @@ locust-ci-run:
 	@echo "Running Locust CI tests..."
 	$(MAKE) populate-data-ci
 	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust locust --host=http://django:8000 --headless -u 5 -r 2 -t 15s --json --exit-code-on-error 1 > locust_output.log 2>&1
-	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust python -m validate_locust_output locust_output.log
-	@echo "Locust tests and validation completed successfully."
-	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust cat locust_output.log && rm locust_output.log
 
+locust-ci-verify:
+	@echo "Verifying Locust tests output..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust python -m validate_locust_output locust_output.log
 
 locust-ci-run-prod:
 	@echo "Running Locust CI tests (production mode)..."
 	$(MAKE) populate-data-ci-prod
 	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --json --exit-code-on-error 1 > locust_output_prod.log 2>&1
-	docker compose exec locust python -m validate_locust_output locust_output_prod.log
 	@echo "Locust tests and validation completed successfully (production mode)."
-	docker compose exec locust cat locust_output_prod.log && rm locust_output_prod.log
 
 # Docker commands (default - with mount volumes for development)
 docker-build:

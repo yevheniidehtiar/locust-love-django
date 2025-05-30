@@ -12,8 +12,9 @@ ENV PYTHONUNBUFFERED=1
 
 # Copy locust files
 COPY locustfile.py /app/
+COPY locustfiles /app/locustfiles
 COPY entrypoint.sh /app/
-COPY startup_logger.py /app/
+
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8089

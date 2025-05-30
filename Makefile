@@ -1,6 +1,6 @@
 # Makefile for locust-love-django project
 
-.PHONY: help setup install dev-setup test test-coverage run-django run-django-custom shell makemigrations migrate collectstatic createsuperuser run-locust docker-build docker-up docker-down docker-restart docker-logs docker-exec docker-clean docker-build-prod docker-up-prod docker-down-prod docker-restart-prod docker-logs-prod docker-exec-prod docker-clean-prod populate-data-ci populate-data-ci-prod locust-ci-run locust-ci-run-prod lint clean
+.PHONY: help setup install dev-setup test test-coverage run-django run-django-custom shell makemigrations migrate collectstatic createsuperuser run-locust docker-build docker-up docker-down docker-restart docker-logs docker-exec docker-clean docker-build-prod docker-up-prod docker-down-prod docker-restart-prod docker-logs-prod docker-exec-prod docker-clean-prod populate-data-ci populate-data-ci-prod locust-ci-run locust-ci-run-prod lint clean create-test-data-10k create-test-data-100k create-test-data-1m create-test-data-10m create-test-data-10k-ci create-test-data-100k-ci create-test-data-10k-ci-prod create-test-data-100k-ci-prod generate-data-async generate-data-async-ci generate-data-async-ci-prod
 
 # Default target
 help:
@@ -33,10 +33,21 @@ help:
 	@echo "  make docker-logs-prod    - View Docker logs (production mode)"
 	@echo "  make docker-exec-prod    - Execute command in Docker container (production mode)"
 	@echo "  make docker-clean-prod   - Clean up Docker resources (production mode)"
-	@echo "  make populate-data-ci     - Populate database with test data"
-	@echo "  make populate-data-ci-prod - Populate database with test data (production mode)"
-	@echo "  make locust-ci-run        - Run Locust CI tests"
-	@echo "  make locust-ci-run-prod   - Run Locust CI tests (production mode)"
+	@echo "  make populate-data-ci     - Populate database with test data (Docker with mount volumes)"
+	@echo "  make populate-data-ci-prod - Populate database with test data (Docker production mode)"
+	@echo "  make create-test-data-10k  - Generate 10K test data (local)"
+	@echo "  make create-test-data-100k - Generate 100K test data (local)"
+	@echo "  make create-test-data-1m   - Generate 1M test data (local)"
+	@echo "  make create-test-data-10m  - Generate 10M test data (local)"
+	@echo "  make create-test-data-10k-ci - Generate 10K test data (Docker with mount volumes)"
+	@echo "  make create-test-data-100k-ci - Generate 100K test data (Docker with mount volumes)"
+	@echo "  make create-test-data-10k-ci-prod - Generate 10K test data (Docker production mode)"
+	@echo "  make create-test-data-100k-ci-prod - Generate 100K test data (Docker production mode)"
+	@echo "  make generate-data-async   - Run custom async data generation (local)"
+	@echo "  make generate-data-async-ci - Run custom async data generation (Docker with mount volumes)"
+	@echo "  make generate-data-async-ci-prod - Run custom async data generation (Docker production mode)"
+	@echo "  make locust-ci-run        - Run Locust CI tests (Docker with mount volumes)"
+	@echo "  make locust-ci-run-prod   - Run Locust CI tests (Docker production mode)"
 	@echo "  make lint           - Run linting checks"
 	@echo "  make clean          - Clean up temporary files"
 
@@ -103,30 +114,64 @@ createsuperuser:
 	@echo "Creating superuser..."
 	cd django-code-smells/django_code_smells && python manage.py createsuperuser
 
-# Create test data
+# Create test data (local)
 create-test-data-10k:
-	@echo "Generating 10K test data..."
+	@echo "Generating 10K test data (local)..."
 	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=10000 --books-per-author=10" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=10000" "generate_complex_data --departments=100 --employees-per-dept=100"
 
 create-test-data-100k:
-	@echo "Generating 100K test data..."
+	@echo "Generating 100K test data (local)..."
 	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=100000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=100000" "generate_complex_data --departments=100 --employees-per-dept=1000"
 
 create-test-data-1m:
-	@echo "Generating 1M test data..."
+	@echo "Generating 1M test data (local)..."
 	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=1000000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=1000000" "generate_complex_data --departments=100 --employees-per-dept=10000"
 
 create-test-data-10m:
-	@echo "Generating 10M test data..."
+	@echo "Generating 10M test data (local)..."
 	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks "generate_simple_data --authors=10000000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=10000000" "generate_complex_data --departments=1000 --employees-per-dept=100000"
 
-# Run custom async data generation
+# Create test data (Docker with mount volumes)
+create-test-data-10k-ci:
+	@echo "Generating 10K test data (Docker with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec django python manage.py generate_data_async --tasks "generate_simple_data --authors=10 --books-per-author=1000" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=10000" "generate_complex_data --departments=100 --employees-per-dept=100"
+
+create-test-data-100k-ci:
+	@echo "Generating 100K test data (Docker with mount volumes)..."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec django python manage.py generate_data_async --tasks "generate_simple_data --authors=100 --books-per-author=1000" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=100000" "generate_complex_data --departments=100 --employees-per-dept=1000"
+
+# Create test data (Docker production mode)
+create-test-data-10k-ci-prod:
+	@echo "Generating 10K test data (Docker production mode)..."
+	docker compose exec django python manage.py generate_data_async --tasks "generate_simple_data --authors=10000 --books-per-author=10" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=10000" "generate_complex_data --departments=100 --employees-per-dept=100"
+
+create-test-data-100k-ci-prod:
+	@echo "Generating 100K test data (Docker production mode)..."
+	docker compose exec django python manage.py generate_data_async --tasks "generate_simple_data --authors=100000 --books-per-author=100" "generate_simple_data --skip-authors --skip-books --skip-indexed-products --products=100000" "generate_complex_data --departments=100 --employees-per-dept=1000"
+
+# Run custom async data generation (local)
 # Usage: make generate-data-async TASKS="task1 task2 ..."
 # Example: make generate-data-async TASKS="\"generate_simple_data --authors=1000\" \"generate_complex_data --departments=50\""
 generate-data-async:
-	@echo "Running async data generation with custom tasks..."
+	@echo "Running async data generation with custom tasks (local)..."
 	@if [ -z "$(TASKS)" ]; then echo "Error: TASKS is required"; exit 1; fi
 	cd django-code-smells/django_code_smells && python manage.py generate_data_async --tasks $(TASKS)
+
+# Run custom async data generation (Docker with mount volumes)
+# Usage: make generate-data-async-ci TASKS="task1 task2 ..."
+# Example: make generate-data-async-ci TASKS="\"generate_simple_data --authors=1000\" \"generate_complex_data --departments=50\""
+generate-data-async-ci:
+	@echo "Running async data generation with custom tasks (Docker with mount volumes)..."
+	@if [ -z "$(TASKS)" ]; then echo "Error: TASKS is required"; exit 1; fi
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec django python manage.py generate_data_async --tasks $(TASKS)
+
+# Run custom async data generation (Docker production mode)
+# Usage: make generate-data-async-ci-prod TASKS="task1 task2 ..."
+# Example: make generate-data-async-ci-prod TASKS="\"generate_simple_data --authors=1000\" \"generate_complex_data --departments=50\""
+generate-data-async-ci-prod:
+	@echo "Running async data generation with custom tasks (Docker production mode)..."
+	@if [ -z "$(TASKS)" ]; then echo "Error: TASKS is required"; exit 1; fi
+	docker compose exec django python manage.py generate_data_async --tasks $(TASKS)
 
 
 # Run Locust load testing
@@ -145,13 +190,19 @@ populate-data-ci-prod:
 locust-ci-run:
 	@echo "Running Locust CI tests..."
 	$(MAKE) populate-data-ci
-	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust locust --host=http://0.0.0.0:8000 --headless -u 10 -r 1 -t 30s --json --exit-code-on-error 1
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust locust --host=http://django:8000 --headless -u 5 -r 2 -t 15s --json --exit-code-on-error 1 > locust_output.log 2>&1
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust python -m validate_locust_output locust_output.log
+	@echo "Locust tests and validation completed successfully."
+	docker compose -f docker-compose.yml -f _mount.docker-compose.yml exec locust cat locust_output.log && rm locust_output.log
 
 
 locust-ci-run-prod:
 	@echo "Running Locust CI tests (production mode)..."
 	$(MAKE) populate-data-ci-prod
-	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --json --exit-code-on-error 1
+	docker compose exec locust locust --host=http://django:8000 --headless -u 10 -r 1 -t 30s --json --exit-code-on-error 1 > locust_output_prod.log 2>&1
+	docker compose exec locust python -m validate_locust_output locust_output_prod.log
+	@echo "Locust tests and validation completed successfully (production mode)."
+	docker compose exec locust cat locust_output_prod.log && rm locust_output_prod.log
 
 # Docker commands (default - with mount volumes for development)
 docker-build:

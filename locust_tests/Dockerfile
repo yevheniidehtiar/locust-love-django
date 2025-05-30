@@ -13,6 +13,7 @@ ENV PYTHONUNBUFFERED=1
 # Copy locust files
 COPY locustfile.py /app/
 COPY locustfiles /app/locustfiles
+COPY validate_locust_output.py /app/
 COPY entrypoint.sh /app/
 
 RUN chmod +x /app/entrypoint.sh

@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 from dataclasses import asdict
 from html import escape
@@ -13,57 +12,6 @@ from locustfiles.performance_metrics.models import \
     PERFORMANCE_METRICS_UI_HEADERS, PerformanceMetrics
 from locustfiles.performance_metrics.parsers import parse_django_response
 from locustfiles.startup_logger import logger
-
-
-class UserBehavior(TaskSet):
-    @task(1)
-    def get_authors(self):
-        logger.debug("Executing get_authors task")
-        with self.client.get("/api/authors/", catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"get_authors response status: {response.status_code}")
-
-
-    @task(2)
-    def get_books(self):
-        with self.client.get("/api/books/", catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"get_books")
-
-    @task(3)
-    def n_plus_one_example(self):
-        with self.client.get("/api/examples/n-plus-one/", catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"n_plus_one_example response status: {response.status_code}")
-
-    @task(3)
-    def optimized_query_example(self):
-        with self.client.get("/api/examples/optimized/", catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"optimized_query_example response status: {response.status_code}")
-
-    @task(2)
-    def expensive_query_example(self):
-        with self.client.get("/api/examples/expensive/",
-                             catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"expensive_query_example response status: {response.status_code}")
-
-    @task(3)
-    def complex_nested_queries_example(self):
-        with self.client.get("/api/examples/complex-nested-queries/", catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"complex_nested_queries_example response status: {response.status_code}")
-
-    @task(3)
-    def department_performance_analysis_example(self):
-        with self.client.get("/api/examples/department-performance-analysis/", catch_response=True) as response:
-            if response.status_code == 200:
-                logger.debug(f"department_performance_analysis_example response status: {response.status_code}")
-
-class WebsiteUser(FastHttpUser):
-    tasks = [UserBehavior]
-    wait_time = between(1, 5)
 
 
 performance_metrics: dict[tuple[str, str], dict[str, int | float | str]] = {}
@@ -124,14 +72,6 @@ def locust_init(environment, **kwargs):
                 )
             )
             return response
-
-        @extend.route("/performance")
-        def extend_web_ui():
-            """
-            Add route to access the extended web UI with our new tab.
-            """
-            # ensure the template_args are up to date before using them
-            environment.web_ui.update_template_args()
 
         @extend.route("/performance")
         def extend_web_ui():
@@ -245,7 +185,6 @@ def on_quitting(**kwargs):
         )
     )
 
-
 @events.reset_stats.add_listener
 def on_reset_stats():
     """
@@ -255,5 +194,55 @@ def on_reset_stats():
     global performance_metrics
     performance_metrics = {}
 
-if __name__ == "__main__":
-    run_single_user(WebsiteUser)
+
+class UserBehavior(TaskSet):
+    @task(1)
+    def get_authors(self):
+        logger.debug("Executing get_authors task")
+        with self.client.get("/api/authors/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"get_authors response status: {response.status_code}")
+
+
+    @task(2)
+    def get_books(self):
+        with self.client.get("/api/books/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"get_books")
+
+    @task(3)
+    def n_plus_one_example(self):
+        with self.client.get("/api/examples/n-plus-one/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"n_plus_one_example response status: {response.status_code}")
+
+    @task(3)
+    def optimized_query_example(self):
+        with self.client.get("/api/examples/optimized/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"optimized_query_example response status: {response.status_code}")
+
+    @task(2)
+    def expensive_query_example(self):
+        with self.client.get("/api/examples/expensive/",
+                             catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"expensive_query_example response status: {response.status_code}")
+
+    @task(3)
+    def complex_nested_queries_example(self):
+        with self.client.get("/api/examples/complex-nested-queries/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"complex_nested_queries_example response status: {response.status_code}")
+
+    @task(3)
+    def department_performance_analysis_example(self):
+        with self.client.get("/api/examples/department-performance-analysis/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"department_performance_analysis_example response status: {response.status_code}")
+
+
+class WebsiteUser(FastHttpUser):
+    tasks = [UserBehavior]
+    wait_time = between(1, 5)
+

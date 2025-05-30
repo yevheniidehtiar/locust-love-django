@@ -68,8 +68,7 @@ class EmployeeFactory(factory.django.DjangoModelFactory):
         lambda o: f"{o.first_name.lower()}.{o.last_name.lower()}@example.com"
     )
     username = factory.Sequence(
-        lambda
-            n: f"{factory.Faker('first_name').generate().lower()}.{factory.Faker('last_name').generate().lower()}.{n}"
+        lambda n: f"{factory.Faker('first_name').generate().lower()}.{factory.Faker('last_name').generate().lower()}.{n}"
     )
     department = factory.SubFactory(DepartmentFactory)
     # manager will be set after creation

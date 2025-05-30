@@ -64,12 +64,11 @@ class PerformanceMetrics:
         return pm
 
     def average(self, metrics) -> dict:
-        self.sql_count = int((self.sql_count + metrics['sql_count']) // 2)
-        self.sql_time = round((self.sql_time + metrics['sql_time']) / 2, 4)
-        self.cpu_time = round((self.cpu_time + metrics['cpu_time']) / 2, 4)
-        self.cache_count = int((self.cache_count + metrics['cache_count']) // 2)
-        self.cache_time = round((self.cache_time + metrics['cache_time']) /
-                                2, 4)
+        self.sql_count = int((self.sql_count + metrics["sql_count"]) // 2)
+        self.sql_time = round((self.sql_time + metrics["sql_time"]) / 2, 4)
+        self.cpu_time = round((self.cpu_time + metrics["cpu_time"]) / 2, 4)
+        self.cache_count = int((self.cache_count + metrics["cache_count"]) // 2)
+        self.cache_time = round((self.cache_time + metrics["cache_time"]) / 2, 4)
         return dataclasses.asdict(self)
 
 

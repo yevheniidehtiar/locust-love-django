@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 from dataclasses import asdict
 from html import escape
@@ -7,65 +6,14 @@ from time import time
 
 from flask import Blueprint, make_response, render_template, request
 
-from locust import FastHttpUser, TaskSet, task, between, events, run_single_user
+from locust import FastHttpUser, TaskSet, task, between, events
 
-from locust_tests.locustfiles.performance_metrics.models import \
-    PERFORMANCE_METRICS_UI_HEADERS, PerformanceMetrics
+from locustfiles.performance_metrics.models import (
+    PERFORMANCE_METRICS_UI_HEADERS,
+    PerformanceMetrics,
+)
 from locustfiles.performance_metrics.parsers import parse_django_response
 from locustfiles.startup_logger import logger
-
-
-class UserBehavior(TaskSet):
-    # @task(1)
-    # def get_authors(self):
-    #     logger.debug("Executing get_authors task")
-    #     with self.client.get("/api/authors/", catch_response=True) as response:
-    #         if response.status_code == 200:
-    #             logger.debug(f"get_authors response status: {response.status_code}")
-    #
-    #
-    # @task(2)
-    # def get_books(self):
-    #     with self.client.get("/api/books/", catch_response=True) as response:
-    #         if response.status_code == 200:
-    #             logger.debug(f"get_books response status: {response.status_code}")
-
-    # @task(3)
-    # def n_plus_one_example(self):
-    #     with self.client.get("/api/examples/n-plus-one/", catch_response=True) as response:
-    #         if response.status_code == 200:
-    #             logger.debug(f"n_plus_one_example response status: {response.status_code}")
-
-
-    # @task(3)
-    # def optimized_query_example(self):
-    #     with self.client.get("/api/examples/optimized/", catch_response=True) as response:
-    #         if response.status_code == 200:
-    #             logger.debug(f"optimized_query_example response status: {response.status_code}")
-
-    @task(3)
-    def expensive_query_example(self):
-        with self.client.get("/api/examples/expensive/",
-                             catch_response=True, debug_stream=sys.stderr) as response:
-            if response.status_code == 200:
-                logger.debug(f"expensive_query_example response status: {response.status_code}")
-    #
-    # @task(3)
-    # def complex_nested_queries_example(self):
-    #     with self.client.get("/api/examples/complex-nested-queries/", catch_response=True) as response:
-    #         if response.status_code == 200:
-    #             logger.debug(f"complex_nested_queries_example response status: {response.status_code}")
-    #
-    # @task(3)
-    # def department_performance_analysis_example(self):
-    #     with self.client.get("/api/examples/department-performance-analysis/", catch_response=True) as response:
-    #         if response.status_code == 200:
-    #             logger.debug(f"department_performance_analysis_example response status: {response.status_code}")
-
-
-class WebsiteUser(FastHttpUser):
-    tasks = [UserBehavior]
-    wait_time = between(1, 5)
 
 
 performance_metrics: dict[tuple[str, str], dict[str, int | float | str]] = {}
@@ -74,10 +22,11 @@ path = os.path.dirname(os.path.abspath(__file__))
 extend = Blueprint(
     "extend",
     "extend_web_ui",
-    static_folder = f"{path}/static/",
-    static_url_path = "/extend/static/",
-    template_folder = f"{path}/templates/",
+    static_folder=f"{path}/static/",
+    static_url_path="/extend/static/",
+    template_folder=f"{path}/templates/",
 )
+
 
 @events.init.add_listener
 def locust_init(environment, **kwargs):
@@ -101,7 +50,7 @@ def locust_init(environment, **kwargs):
                             "name": str(name[0]),
                             "method": str(name[1]),
                             "safe_name": escape(str(name[0]), quote=False),
-                            **metrics
+                            **metrics,
                         }
                     )
             return metrics_tmp
@@ -111,7 +60,7 @@ def locust_init(environment, **kwargs):
             if request.path != "/stats/requests":
                 return response
 
-            # extended_stats contains the data where extended_tables looks for its data: "cache-statistics"
+            # extended_stats contains the data where extended_tables looks for its data: "performance-metrics"
             response.set_data(
                 json.dumps(
                     {
@@ -119,13 +68,12 @@ def locust_init(environment, **kwargs):
                         "extended_stats": [
                             {
                                 "key": "performance-metrics",
-                                "data": get_performance_metrics()
+                                "data": get_performance_metrics(),
                             }
-                        ]
+                        ],
                     }
                 )
             )
-
             return response
 
         @extend.route("/performance")
@@ -142,10 +90,7 @@ def locust_init(environment, **kwargs):
                     **environment.web_ui.template_args,
                     # extended_tabs and extended_tables keys must match.
                     "extended_tabs": [
-                        {
-                            "title": "Performance metrics",
-                            "key": "performance-metrics"
-                        }
+                        {"title": "Performance metrics", "key": "performance-metrics"}
                     ],
                     "extended_tables": [
                         {
@@ -154,17 +99,17 @@ def locust_init(environment, **kwargs):
                                 {"key": "name", "title": "Name"},
                                 *[
                                     {"key": key, "title": title}
-                                    for key, title in
-                                    PERFORMANCE_METRICS_UI_HEADERS.items()
-                                ]
-                            ]
+                                    for key, title in PERFORMANCE_METRICS_UI_HEADERS.items()
+                                ],
+                            ],
                         }
                     ],
-                    "extended_csv_files": [{"href": "/performance/csv",
-                                            "title": "Download Performance "
-                                                     "Metrics CSV"}
-                                           ],
-
+                    "extended_csv_files": [
+                        {
+                            "href": "/performance/csv",
+                            "title": "Download Performance Metrics CSV",
+                        }
+                    ],
                 },
             )
 
@@ -186,17 +131,25 @@ def locust_init(environment, **kwargs):
 
             if performance_metrics:
                 for name, stats in performance_metrics.items():
-                    rows.append(f'"{name}",' + ",".join(
-                        str(v) for v in stats.values()))
+                    rows.append(f'"{name}",' + ",".join(str(v) for v in stats.values()))
             return "\n".join(rows)
 
         # register our new routes and extended UI with the Locust web UI
         environment.web_ui.app.register_blueprint(extend)
 
+
 @events.request.add_listener
 def my_request_handle_performance_metrics(
-        request_type, name, response_time, response_length, response,
-        context, exception, start_time, url, **kwargs
+    request_type,
+    name,
+    response_time,
+    response_length,
+    response,
+    context,
+    exception,
+    start_time,
+    url,
+    **kwargs,
 ):
     metrics = parse_django_response(response)
     # performance_metrics[(name, request_type)] = asdict(metrics)
@@ -207,8 +160,6 @@ def my_request_handle_performance_metrics(
     else:
         performance_metrics[(name, request_type)] = metrics.average(existing_metrics)
 
-    # import pdb
-    # pdb.set_trace()
 
 @events.report_to_master.add_listener
 def on_report_to_master(client_id, data):
@@ -221,6 +172,7 @@ def on_report_to_master(client_id, data):
     data["performance_metrics"] = performance_metrics
     performance_metrics = {}
 
+
 @events.worker_report.add_listener
 def on_worker_report(client_id, data):
     """
@@ -232,6 +184,20 @@ def on_worker_report(client_id, data):
         for stat_name, value in metrics.items():
             performance_metrics[name][stat_name] += value
 
+
+@events.quitting.add_listener
+def on_quitting(**kwargs):
+    print(
+        json.dumps(
+            [
+                {"name": name, "method": method, **stats}
+                for (name, method), stats in performance_metrics.items()
+            ],
+            indent=4,
+        )
+    )
+
+
 @events.reset_stats.add_listener
 def on_reset_stats():
     """
@@ -241,5 +207,72 @@ def on_reset_stats():
     global performance_metrics
     performance_metrics = {}
 
-if __name__ == "__main__":
-    run_single_user(WebsiteUser)
+
+class UserBehavior(TaskSet):
+    @task(1)
+    def get_authors(self):
+        logger.debug("Executing get_authors task")
+        with self.client.get("/api/authors/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug(f"get_authors response status: {response.status_code}")
+
+    @task(2)
+    def get_books(self):
+        with self.client.get("/api/books/", catch_response=True) as response:
+            if response.status_code == 200:
+                logger.debug("get_books")
+
+    @task(3)
+    def n_plus_one_example(self):
+        with self.client.get(
+            "/api/examples/n-plus-one/", catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                logger.debug(
+                    f"n_plus_one_example response status: {response.status_code}"
+                )
+
+    @task(3)
+    def optimized_query_example(self):
+        with self.client.get(
+            "/api/examples/optimized/", catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                logger.debug(
+                    f"optimized_query_example response status: {response.status_code}"
+                )
+
+    @task(2)
+    def expensive_query_example(self):
+        with self.client.get(
+            "/api/examples/expensive/", catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                logger.debug(
+                    f"expensive_query_example response status: {response.status_code}"
+                )
+
+    @task(3)
+    def complex_nested_queries_example(self):
+        with self.client.get(
+            "/api/examples/complex-nested-queries/", catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                logger.debug(
+                    f"complex_nested_queries_example response status: {response.status_code}"
+                )
+
+    @task(3)
+    def department_performance_analysis_example(self):
+        with self.client.get(
+            "/api/examples/department-performance-analysis/", catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                logger.debug(
+                    f"department_performance_analysis_example response status: {response.status_code}"
+                )
+
+
+class WebsiteUser(FastHttpUser):
+    tasks = [UserBehavior]
+    wait_time = between(1, 5)

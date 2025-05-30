@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   django:
     volumes:
@@ -9,8 +7,7 @@ services:
   locust:
     volumes:
       - ./locust_tests/:/app/
-      - locust-reports:/locust_reports
+      - ./locust_reports:/locust_reports
 
 volumes:
   sqlite-data:
-  locust-reports:
